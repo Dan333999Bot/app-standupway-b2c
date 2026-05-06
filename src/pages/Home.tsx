@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import { QuickAccessBar } from "@/components/QuickAccessBar";
@@ -10,6 +10,8 @@ import {
   Video, CalendarDays, Clock, Coins, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePageTracking } from "@/hooks/usePageTracking";
+import { trackEvent, trackCta } from "@/lib/analytics";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { TokenPaywall } from "@/components/TokenPaywall";
 import { toast } from "sonner";
@@ -34,6 +36,7 @@ const ATTIVITA_IMMINENTI: Attivita[] = [
 export const AGENDA_KEY = "standup_agenda_extra";
 
 const Home = () => {
+  usePageTracking("home");
   const [cleanDate] = useState<Date | undefined>(() => {
     const saved = localStorage.getItem("standup_clean_date");
     return saved ? new Date(saved) : undefined;
@@ -47,6 +50,7 @@ const Home = () => {
 
   const confirmBooking = () => {
     if (!active) return;
+    trackCta("activity_booked", "home", { activity: active.id, title: active.title });
     try {
       const cur = JSON.parse(localStorage.getItem(AGENDA_KEY) || "[]");
       cur.push({ id: active.id, titolo: active.title, when: active.when, location: active.location,
@@ -110,7 +114,7 @@ const Home = () => {
         </div>
 
         {/* Free Self-Assessment CTA */}
-        <Link to="/autovalutazione" className="block">
+        <Link to="/autovalutazione" className="block" onClick={() => trackCta("self_assessment", "home")}>
           <div className="rounded-2xl p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
@@ -145,7 +149,7 @@ const Home = () => {
               return (
                 <button
                   key={att.id}
-                  onClick={() => setActive(att)}
+                  onClick={() => { setActive(att); trackEvent("activity_click", "home", { activity: att.id }); }}
                   className="w-full text-left glass-card rounded-xl p-3.5 flex items-center gap-3 hover:border-primary/30 transition-all group"
                 >
                   <div className="w-11 h-11 rounded-xl bg-secondary/60 flex items-center justify-center flex-shrink-0">

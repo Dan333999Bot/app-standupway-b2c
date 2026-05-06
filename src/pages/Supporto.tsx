@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { usePageTracking } from "@/hooks/usePageTracking";
+import { trackEvent } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import { Send, Bot, User, Loader2 } from "lucide-react";
@@ -64,6 +66,7 @@ const getAIResponse = (userMessage: string, history: Message[]): string => {
 };
 
 const Supporto = () => {
+  usePageTracking("supporto");
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -80,6 +83,7 @@ const Supporto = () => {
 
     const userMsg: Message = { id: Date.now(), role: "user", content: input.trim(), time: timeStr };
     const currentInput = input.trim();
+    trackEvent("chat_message_sent", "supporto", { message_count: messages.length + 1, has_prenota: currentInput.toLowerCase().includes("prenot") });
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);

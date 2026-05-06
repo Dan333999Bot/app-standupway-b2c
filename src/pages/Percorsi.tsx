@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { usePageTracking } from "@/hooks/usePageTracking";
+import { trackEvent, trackCta } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import {
@@ -35,6 +37,7 @@ const quickLinks = [
 ];
 
 const Percorsi = () => {
+  usePageTracking("percorsi");
   const hasActivePercorso = true;
 
   const [cleanDate, setCleanDate] = useState<Date | undefined>(() => {
@@ -142,6 +145,7 @@ const Percorsi = () => {
               key={percorso.id}
               to={`/percorsi/${percorso.id}/questionario`}
               className="glass-card rounded-xl p-4 flex items-center gap-4 group hover:border-primary/30 transition-colors block"
+              onClick={() => trackEvent("percorso_click", "percorsi", { percorso: percorso.id, title: percorso.title })}
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${percorso.color} flex items-center justify-center`}>
                 <percorso.icon className="w-6 h-6 text-foreground" />

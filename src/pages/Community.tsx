@@ -1,4 +1,6 @@
 import { useState, useRef } from "react";
+import { usePageTracking } from "@/hooks/usePageTracking";
+import { trackEvent } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import {
@@ -172,6 +174,7 @@ const annunci = [
 ];
 
 const CommunityPage = () => {
+  usePageTracking("community");
   const [newPost, setNewPost] = useState("");
   const [allPosts, setAllPosts] = useState<(Post & { communityId: string; communityName: string; zoneId?: string })[]>(() =>
     communities.filter(c => !c.locked).flatMap(c => {
@@ -190,6 +193,8 @@ const CommunityPage = () => {
   const feedRef = useRef<HTMLDivElement>(null);
 
   const toggleLike = (id: number) => {
+    const post = allPosts.find(p => p.id === id);
+    if (post && !post.liked) trackEvent("post_liked", "community", { post_id: id });
     setAllPosts(prev => prev.map(p => p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
   };
 
@@ -201,6 +206,7 @@ const CommunityPage = () => {
 
   const publishPost = () => {
     if (!newPost.trim()) return;
+    trackEvent("post_published", "community", { length: newPost.trim().length });
     const post: Post & { communityId: string; communityName: string; zoneId?: string } = {
       id: Date.now(), author: "Tu", avatar: "T", time: "Adesso", content: newPost.trim(),
       likes: 0, liked: false, comments: [], communityId: "community",

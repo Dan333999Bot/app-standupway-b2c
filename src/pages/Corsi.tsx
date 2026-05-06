@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { usePageTracking } from "@/hooks/usePageTracking";
+import { trackEvent, trackCta } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import { Clock, Play, BookOpen, Check, CreditCard, Building2 } from "lucide-react";
@@ -29,6 +31,7 @@ const corsoLezioni = [
 ];
 
 const Corsi = () => {
+  usePageTracking("corsi");
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedCorso, setSelectedCorso] = useState<typeof corsiOnDemand[0] | null>(null);
@@ -37,6 +40,7 @@ const Corsi = () => {
   const [paymentMethod, setPaymentMethod] = useState<"carta" | "bonifico" | null>(null);
 
   const handleCorsoClick = (corso: typeof corsiOnDemand[0]) => {
+    trackEvent("corso_click", "corsi", { corso_id: corso.id, title: corso.title, free: corso.free, price: corso.price });
     if (corso.free) {
       navigate(`/corso/${corso.id}`);
     } else {
@@ -47,9 +51,13 @@ const Corsi = () => {
     }
   };
 
-  const handleStartPayment = () => setShowPayment(true);
+  const handleStartPayment = () => {
+    trackCta("corso_purchase_intent", "corsi", { corso: selectedCorso?.title, price: selectedCorso?.price });
+    setShowPayment(true);
+  };
 
   const handleConfirmPayment = () => {
+    trackCta("corso_purchase_complete", "corsi", { corso: selectedCorso?.title, price: selectedCorso?.price, method: "card" });
     toast({ title: "Acquisto completato! ✅", description: `${selectedCorso?.title} - Buono studio!` });
     setShowPurchase(false);
     setShowPayment(false);

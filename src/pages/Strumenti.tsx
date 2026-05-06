@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { usePageTracking } from "@/hooks/usePageTracking";
+import { trackEvent, trackCta } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import { Link } from "react-router-dom";
@@ -36,6 +38,7 @@ const BreathingExercise = () => {
   }, [active, phase]);
 
   const stop = () => {
+    trackEvent("breathing_completed", "strumenti", { seconds_active: seconds });
     setActive(false);
     setPhase("inspira");
     setSeconds(0);
@@ -80,7 +83,7 @@ const BreathingExercise = () => {
       </div>
 
       <Button
-        onClick={active ? stop : () => setActive(true)}
+        onClick={active ? stop : () => { setActive(true); trackEvent("breathing_started", "strumenti"); }}
         variant={active ? "secondary" : "default"}
         className="w-full"
       >
@@ -92,6 +95,7 @@ const BreathingExercise = () => {
 
 /* ─── Strumenti Page ─── */
 const Strumenti = () => {
+  usePageTracking("strumenti");
   const [cleanDate] = useState<Date | undefined>(() => {
     const saved = localStorage.getItem("standup_clean_date");
     return saved ? new Date(saved) : undefined;
