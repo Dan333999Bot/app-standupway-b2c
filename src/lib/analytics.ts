@@ -52,8 +52,6 @@ function isFirstVisit(): boolean {
 
 async function insert(event_type: string, screen: string, metadata: Record<string, unknown> = {}) {
   try {
-    const url = import.meta.env.VITE_SUPABASE_URL
-    console.log('[analytics] insert', event_type, screen, '| url:', url ? url.slice(0, 30) : 'UNDEFINED')
     await supabase.from('events').insert({
       user_id: getUserId(),
       event_type,
