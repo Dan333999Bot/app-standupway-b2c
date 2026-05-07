@@ -10,20 +10,18 @@ const Thankyou = () => {
   const [unlocked, setUnlocked] = useState(false);
 
   useEffect(() => {
-    const userId = localStorage.getItem("sw_user_id");
-    if (!userId) { setUnlocked(true); return; }
+    // Fallback immediato via localStorage (funziona anche se Supabase è lento/bloccato)
+    localStorage.setItem("sw_first_colloquio_done", "true");
+    setUnlocked(true);
 
+    const userId = localStorage.getItem("sw_user_id");
+    if (!userId) return;
     supabase
       .from("user_state")
       .upsert(
-        {
-          user_id: userId,
-          first_colloquio_done: true,
-          first_colloquio_date: new Date().toISOString(),
-        },
+        { user_id: userId, first_colloquio_done: true, first_colloquio_date: new Date().toISOString() },
         { onConflict: "user_id" }
-      )
-      .then(() => setUnlocked(true));
+      );
   }, []);
 
   return (

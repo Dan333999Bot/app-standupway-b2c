@@ -34,14 +34,26 @@ export function useUserState() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!userId) { setLoading(false); return }
+    const localFirstColloquio = localStorage.getItem('sw_first_colloquio_done') === 'true'
+
+    if (!userId) {
+      if (localFirstColloquio) {
+        setState({ user_id: 'local', ...DEFAULT, first_colloquio_done: true })
+      }
+      setLoading(false)
+      return
+    }
+
     supabase
       .from('user_state')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle()
       .then(({ data }) => {
-        setState(data ?? { user_id: userId, ...DEFAULT })
+        const base = data ?? { user_id: userId, ...DEFAULT }
+        // Merge localStorage flag: se thankyou è stata visitata, first_colloquio_done è sempre true
+        if (localFirstColloquio) base.first_colloquio_done = true
+        setState(base)
         setLoading(false)
       })
   }, [userId])
