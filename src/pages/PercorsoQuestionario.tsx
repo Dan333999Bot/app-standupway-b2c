@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { trackFunnel, trackCta, trackEvent } from "@/lib/analytics";
+import { trackFunnel, trackEvent } from "@/lib/analytics";
 import { ArrowLeft, ArrowRight, Heart, Phone, Sparkles, Wind, BookOpen, Users, Home as HomeIcon, Clock, ShieldCheck, Lock, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -214,31 +214,30 @@ const PercorsoQuestionario = () => {
   const [score, setScore] = useState(0);
   const [pref, setPref] = useState<Preferenze | null>(null);
   const [phase, setPhase] = useState<"questions" | "result">("questions");
-  const startTimeRef = useRef(Date.now());
   const isEnd = phase === "result";
   const progress = Math.round(((i + (isEnd ? 0 : 1)) / (steps.length + 1)) * 100);
+  const startRef = useRef(Date.now());
 
-  // Track start
   useEffect(() => {
-    trackFunnel("questionario", "start", { percorso: id, total_steps: steps.length });
-    const handleLeave = () => {
+    trackFunnel(id || "questionario", "start", { percorso: id });
+    const onUnload = () => {
       if (phase !== "result") {
-        trackEvent("questionario_abandon", "questionario", {
-          percorso: id, step: i, total: steps.length,
-          time_s: Math.round((Date.now() - startTimeRef.current) / 1000),
-        });
+        trackFunnel(id || "questionario", "abandon", { step: i, score, percorso: id });
       }
     };
-    window.addEventListener("beforeunload", handleLeave);
-    return () => window.removeEventListener("beforeunload", handleLeave);
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Track completion
+  // Quando finiscono le domande, vai direttamente al risultato
   useEffect(() => {
     if (phase === "questions" && i >= steps.length) {
       setPhase("result");
+      const level = score >= 12 ? "alto" : score >= 6 ? "medio" : "basso";
+      trackFunnel(id || "questionario", "complete", { score, level, percorso: id, time_s: Math.round((Date.now() - startRef.current) / 1000) });
     }
-  }, [phase, i, steps.length]);
+  }, [phase, i, steps.length, score, id]);
 
   const step = steps[i];
 
@@ -248,14 +247,14 @@ const PercorsoQuestionario = () => {
       alto: {
         badge: "Supporto immediato consigliato",
         title: "Sei in un momento delicato — non affrontarlo da solo/a",
-        body: "Le tue risposte ci dicono che adesso è importante avere accanto un professionista. Il primo colloquio è gratuito, senza impegno.",
+        body: "Le tue risposte ci dicono che adesso è importante avere accanto un professionista. Il primo colloquio costa 49€, senza impegno.",
         plan: "Percorso intensivo con presa in carico completa",
         duration: "12+ mesi con supporto continuo",
       },
       medio: {
         badge: "C'è una direzione chiara",
         title: "Possiamo costruire un percorso su misura per te",
-        body: "Quello che hai condiviso ci dà già una buona idea. Un colloquio gratuito ci serve a capire insieme da dove partire.",
+        body: "Quello che hai condiviso ci dà già una buona idea. Un colloquio di 30 min (49€) ci serve a capire insieme da dove partire.",
         plan: "Percorso personalizzato online + sede",
         duration: "3-6 mesi modulari",
       },
@@ -285,14 +284,14 @@ const PercorsoQuestionario = () => {
               <Clock className="w-3.5 h-3.5" /> Durata indicativa: {config.duration}
             </p>
             <p className="text-[11px] italic text-muted-foreground pt-1">
-              * Una stima. Il colloquio gratuito serve proprio a definire il piano su misura per te.
+              * Una stima. Il colloquio di 30 min serve proprio a definire il piano su misura per te.
             </p>
           </div>
 
           <div className="space-y-2.5">
-            <Button asChild size="lg" className="w-full h-14 text-base font-semibold">
-              <Link to={`/percorso/visite?type=colloquio-gratuito`} onClick={() => trackCta("questionario_book_colloquio", "questionario", { percorso: id, level })}>
-                <CalendarCheck className="w-5 h-5 mr-2" /> Fai il colloquio gratuito di 30 min
+            <Button asChild size="lg" className="w-full h-14 text-base font-semibold" onClick={() => trackEvent("questionario_book_colloquio", "percorso_questionario", { percorso: id, score, level: score >= 12 ? "alto" : score >= 6 ? "medio" : "basso" })}>
+              <Link to={`/percorso/visite?type=colloquio-gratuito`}>
+                <CalendarCheck className="w-5 h-5 mr-2" /> Prenota il colloquio · 49€
               </Link>
             </Button>
             <p className="text-[11px] text-muted-foreground -mt-1">
@@ -344,18 +343,9 @@ const PercorsoQuestionario = () => {
   }
 
   const next = (weight = 0) => {
-    const newI = i + 1;
-    const newScore = score + weight;
-    trackFunnel("questionario", `step_${i}`, { percorso: id, step_index: i, weight, score_so_far: newScore });
-    if (newI >= steps.length) {
-      const level = newScore >= 12 ? "alto" : newScore >= 6 ? "medio" : "basso";
-      trackFunnel("questionario", "complete", {
-        percorso: id, final_score: newScore, level,
-        time_s: Math.round((Date.now() - startTimeRef.current) / 1000),
-      });
-    }
-    setScore(newScore);
-    setI(newI);
+    trackFunnel(id || "questionario", `step_${i}`, { weight, score: score + weight, percorso: id });
+    setScore((s) => s + weight);
+    setI((n) => n + 1);
   };
 
   if (!step) return null;

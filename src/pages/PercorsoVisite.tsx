@@ -14,8 +14,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { PreferenzeProfessionista, type Preferenze } from "@/components/PreferenzeProfessionista";
-import { TokenPaywall } from "@/components/TokenPaywall";
-import { Coins } from "lucide-react";
+import { CreditCard, ExternalLink } from "lucide-react";
 
 const visitePassate = [
   { tipo: "online", titolo: "Colloquio con psicologo", data: "10 Mar 2026", ora: "10:00" },
@@ -34,11 +33,11 @@ const attivitaPercorso = [
 ];
 
 const orariDisponibili = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
-const tipiVisita: { id: string; label: string; tipo: string; icon: typeof Video; cost: number; free?: boolean }[] = [
-  { id: "colloquio-gratuito", label: "Colloquio di 30 min", tipo: "online", icon: Video, cost: 30 },
-  { id: "psicologo", label: "Colloquio con psicologo (60 min)", tipo: "online", icon: Video, cost: 60 },
-  { id: "psichiatra", label: "Visita psichiatrica", tipo: "sede", icon: MapPin, cost: 120 },
-  { id: "medica", label: "Visita medica", tipo: "sede", icon: MapPin, cost: 100 },
+const tipiVisita: { id: string; label: string; tipo: string; icon: typeof Video; price: string; stripeUrl: string; free?: boolean }[] = [
+  { id: "colloquio-gratuito", label: "Primo colloquio (30 min)", tipo: "online", icon: Video, price: "49€", stripeUrl: "https://buy.stripe.com/test_PLACEHOLDER_COLLOQUIO" },
+  { id: "psicologo", label: "Colloquio con psicologo (60 min)", tipo: "online", icon: Video, price: "60€", stripeUrl: "https://buy.stripe.com/test_PLACEHOLDER_PSI" },
+  { id: "psichiatra", label: "Visita psichiatrica", tipo: "sede", icon: MapPin, price: "120€", stripeUrl: "https://buy.stripe.com/test_PLACEHOLDER_PSY" },
+  { id: "medica", label: "Visita medica", tipo: "sede", icon: MapPin, price: "100€", stripeUrl: "https://buy.stripe.com/test_PLACEHOLDER_MED" },
 ];
 
 const PercorsoVisite = () => {
@@ -51,7 +50,6 @@ const PercorsoVisite = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [pref, setPref] = useState<Preferenze | null>(null);
-  const [paywallOpen, setPaywallOpen] = useState(false);
   const [bookedVisits, setBookedVisits] = useState(() => {
     try {
       const extra = JSON.parse(localStorage.getItem("standup_agenda_extra") || "[]");
@@ -89,7 +87,14 @@ const PercorsoVisite = () => {
 
   const startPayment = () => {
     if (!selectedType || !selectedDate || !selectedTime) return;
-    setPaywallOpen(true);
+    const tipo = tipiVisita.find(t => t.id === selectedType);
+    if (!tipo) return;
+    if (tipo.free) {
+      finalizeBooking();
+    } else {
+      window.open(tipo.stripeUrl, "_blank");
+      finalizeBooking();
+    }
   };
 
   const finalizeBooking = () => {
@@ -231,9 +236,7 @@ const PercorsoVisite = () => {
                         GRATIS
                       </span>
                     ) : (
-                      <span className="text-[11px] font-bold text-primary flex items-center gap-1">
-                        <Coins className="w-3 h-3" /> {tipo.cost}
-                      </span>
+                      <span className="text-[11px] font-bold text-primary">{tipo.price}</span>
                     )}
                   </button>
                 );
@@ -312,15 +315,14 @@ const PercorsoVisite = () => {
                       🎁 GRATIS
                     </span>
                   ) : (
-                    <span className="text-sm font-bold text-primary flex items-center gap-1">
-                      <Coins className="w-3.5 h-3.5" /> {tipiVisita.find(t => t.id === selectedType)?.cost} token
-                    </span>
+                    <span className="text-sm font-bold text-primary">{tipiVisita.find(t => t.id === selectedType)?.price}</span>
                   )}
                 </div>
               </div>
               <Button onClick={startPayment} className="w-full">
-                <Coins className="w-4 h-4 mr-1.5" />
-                {tipiVisita.find(t => t.id === selectedType)?.free ? "Conferma con i tuoi token (gratis)" : "Paga con token e conferma"}
+                {tipiVisita.find(t => t.id === selectedType)?.free
+                  ? "Conferma prenotazione gratuita"
+                  : (<><CreditCard className="w-4 h-4 mr-1.5" /> Paga con carta · {tipiVisita.find(t => t.id === selectedType)?.price} <ExternalLink className="w-3.5 h-3.5 ml-1.5" /></>)}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setBookingStep("time")} className="w-full text-xs">
                 ← Cambia orario
@@ -329,18 +331,6 @@ const PercorsoVisite = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {selectedType && (
-        <TokenPaywall
-          open={paywallOpen}
-          onOpenChange={setPaywallOpen}
-          cost={tipiVisita.find(t => t.id === selectedType)?.cost || 0}
-          free={tipiVisita.find(t => t.id === selectedType)?.free}
-          reason={`Prenotazione ${tipiVisita.find(t => t.id === selectedType)?.label}`}
-          itemLabel={`${tipiVisita.find(t => t.id === selectedType)?.label} · ${selectedDate?.toLocaleDateString("it-IT")} h ${selectedTime}`}
-          onConfirm={finalizeBooking}
-        />
-      )}
 
       <BottomNav />
     </div>

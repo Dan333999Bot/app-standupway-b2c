@@ -2,7 +2,6 @@ import { Menu, X, User, Route, CreditCard, Tag, KeyRound, LogOut, Sun, Moon, Bel
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { TokenBadge } from "@/components/TokenBadge";
 
 
 const MenuDropdown = ({ onClose }: { onClose: () => void }) => {
@@ -67,7 +66,7 @@ const MenuDropdown = ({ onClose }: { onClose: () => void }) => {
           <Link to="/codici-sconto" onClick={onClose} className="flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
             <Tag className="w-4 h-4 text-muted-foreground" /> Codici sconto
           </Link>
-          <Link to="/servizi" onClick={onClose} className="flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+          <Link to="/invita" onClick={onClose} className="flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
             <Gift className="w-4 h-4 text-muted-foreground" /> Invita un amico
           </Link>
           
@@ -99,7 +98,6 @@ export const HeaderActions = () => {
 
   return (
     <div className="flex items-center gap-2">
-      <TokenBadge />
       <button
         onClick={() => setMenuOpen(!menuOpen)}
         className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"

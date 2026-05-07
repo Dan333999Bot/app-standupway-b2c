@@ -1,163 +1,123 @@
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
+import { BackButton } from "@/components/BackButton";
 import { Link } from "react-router-dom";
 import {
-  Users, MapPin, Search, Stethoscope, Heart, HeartHandshake,
-  ChevronRight, Lock, GraduationCap, Flower2, Plus, ImagePlus, Video as VideoIcon,
-  Send, ThumbsUp, MessageCircle, CalendarDays, X, Newspaper, Globe2, Compass,
+  Users, MapPin, Heart, HeartHandshake, Stethoscope, GraduationCap, Flower2,
+  Lock, ImagePlus, Video as VideoIcon, Send, ThumbsUp, MessageCircle,
+  CalendarDays, X, Newspaper, Sparkles, Globe, Clock,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type AudienceKey = "utenti" | "familiari" | "professionisti";
-type Tab = "bacheca" | "eventi" | "gruppi";
+type Tab = "bacheca" | "incontri" | "gruppi";
+type BoardKey = "pubblica" | "utenti" | "familiari" | "professionisti" | "coach";
 
-const AUDIENCES: { key: AudienceKey; label: string; icon: any }[] = [
-  { key: "utenti", label: "Utenti", icon: Heart },
-  { key: "familiari", label: "Familiari", icon: HeartHandshake },
-  { key: "professionisti", label: "Professionisti", icon: Stethoscope },
+const isPercorsoActive = () => localStorage.getItem("standup_percorso_state") === "active";
+
+const BOARDS: { key: BoardKey; label: string; icon: any; color: string; private: boolean; desc: string }[] = [
+  { key: "pubblica",       label: "Pubblica",       icon: Globe,         color: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/40 text-emerald-700 dark:text-emerald-400", private: false, desc: "Aperta a tutti" },
+  { key: "utenti",         label: "Utenti percorsi", icon: Heart,        color: "from-primary/20 to-primary/5 border-primary/40 text-primary",                                       private: true,  desc: "Riservata a chi è in percorso" },
+  { key: "familiari",      label: "Familiari",      icon: HeartHandshake, color: "from-amber-500/20 to-amber-500/5 border-amber-500/40 text-amber-700 dark:text-amber-400",         private: true,  desc: "Riservata ai familiari" },
+  { key: "professionisti", label: "Professionisti", icon: Stethoscope,   color: "from-blue-500/20 to-blue-500/5 border-blue-500/40 text-blue-700 dark:text-blue-400",                private: true,  desc: "Riservata ai professionisti" },
+  { key: "coach",          label: "Coach",          icon: GraduationCap, color: "from-violet-500/20 to-violet-500/5 border-violet-500/40 text-violet-700 dark:text-violet-400",      private: true,  desc: "Riservata ai coach" },
 ];
 
-interface Group {
-  id: string; city: string; region: string; type: AudienceKey;
-  name: string; members: number; verified?: boolean; reserved?: boolean;
-}
-
-const GROUPS: Group[] = [
-  { id: "1", city: "Milano", region: "Lombardia", type: "utenti", name: "Gruppo Milano Centro", members: 48 },
-  { id: "2", city: "Milano", region: "Lombardia", type: "professionisti", name: "Centro Recovery Milano", members: 12, verified: true, reserved: true },
-  { id: "4", city: "Milano", region: "Lombardia", type: "familiari", name: "Familiari Milano", members: 22, reserved: true },
-  { id: "5", city: "Roma", region: "Lazio", type: "utenti", name: "Gruppo Roma Sud", members: 36 },
-  { id: "7", city: "Roma", region: "Lazio", type: "familiari", name: "Cerchio Familiari Roma", members: 18, reserved: true },
-  { id: "8", city: "Bologna", region: "Emilia-Romagna", type: "utenti", name: "Gruppo Bologna", members: 29 },
-  { id: "10", city: "Torino", region: "Piemonte", type: "utenti", name: "Gruppo Torino", members: 24 },
-  { id: "12", city: "Napoli", region: "Campania", type: "utenti", name: "Gruppo Napoli", members: 31 },
-  { id: "14", city: "Firenze", region: "Toscana", type: "utenti", name: "Gruppo Firenze", members: 18 },
+const SUB_CIRCLES = [
+  { key: "tutor",  label: "Tutor & Coach",  icon: GraduationCap, members: 84 },
+  { key: "pro",    label: "Professionisti", icon: Stethoscope,    members: 156 },
+  { key: "fam",    label: "Familiari",      icon: HeartHandshake, members: 312 },
+  { key: "ladies", label: "Ladies Only",    icon: Flower2,        members: 198 },
 ];
 
-const RESERVED_NATIONAL = [
-  { key: "tutor", label: "Tutor & Coach", icon: GraduationCap, members: 84 },
-  { key: "pro", label: "Professionisti", icon: Stethoscope, members: 156 },
-  { key: "fam", label: "Familiari", icon: HeartHandshake, members: 312 },
-  { key: "ladies", label: "Ladies Only", icon: Flower2, members: 198 },
+const INCONTRI = [
+  { id: "bm-mi-16", tipo: "basement", title: "Basement Milano",  city: "Milano",  data: "Sab 16 Mag", ora: "14:30 – 17:30", durata: "3 ore",            to: "/attivita/eventi/bm-mi-16" },
+  { id: "bm-rm-17", tipo: "basement", title: "Basement Roma",    city: "Roma",    data: "Dom 17 Mag", ora: "15:00 – 18:00", durata: "3 ore",            to: "/attivita/eventi/bm-rm-17" },
+  { id: "sl-mi-24", tipo: "standlab", title: "StandLab Milano",  city: "Milano",  data: "Sab 24 Mag", ora: "10:00 – 19:00", durata: "Giornata intera",  to: "/attivita/eventi/sl-mi-24" },
+  { id: "bm-bo-23", tipo: "basement", title: "Basement Bologna", city: "Bologna", data: "Sab 23 Mag", ora: "15:00 – 18:00", durata: "3 ore",            to: "/attivita/eventi/bm-bo-23" },
+  { id: "sl-rm-31", tipo: "standlab", title: "StandLab Roma",    city: "Roma",    data: "Sab 31 Mag", ora: "10:00 – 19:00", durata: "Giornata intera",  to: "/attivita/eventi/sl-rm-31" },
 ];
 
-const TYPE_META: Record<AudienceKey, { color: string; ring: string; icon: any; label: string }> = {
-  utenti: { color: "bg-primary/10 text-primary", ring: "ring-primary/30", icon: Heart, label: "Utenti" },
-  familiari: { color: "bg-amber-500/10 text-amber-600 dark:text-amber-400", ring: "ring-amber-500/30", icon: HeartHandshake, label: "Familiari" },
-  professionisti: { color: "bg-blue-500/10 text-blue-600 dark:text-blue-400", ring: "ring-blue-500/30", icon: Stethoscope, label: "Professionisti" },
-};
-
-const EVENTI = [
-  { id: "e1", title: "Incontro Basement", when: "Sab 16 Mag · 18:30", city: "Milano", region: "Lombardia", to: "/insede" },
-  { id: "e2", title: "Cerchio del mattino", when: "Dom 17 Mag · 09:00", city: "Roma", region: "Lazio", to: "/insede" },
-  { id: "e3", title: "TOGETHER Bologna", when: "15-17 Mag · 3 giorni", city: "Bologna", region: "Emilia-Romagna", to: "/eventi/301" },
-  { id: "e4", title: "Cammino lungo il Po", when: "Mer 20 Mag · 18:00", city: "Torino", region: "Piemonte", to: "/insede" },
-];
+const TIPO_META = {
+  basement: { label: "Basement", color: "bg-primary/10 text-primary border-primary/30" },
+  standlab: { label: "StandLab", color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30" },
+} as const;
 
 interface BoardPost {
   id: number; author: string; avatar: string; time: string; city?: string;
+  board: BoardKey;
   content: string; media?: { type: "image" | "video"; url: string };
   likes: number; liked: boolean; comments: number;
 }
 
 const SEED_POSTS: BoardPost[] = [
-  { id: 1, author: "Coach Marco", avatar: "M", time: "1 ora fa", city: "Milano",
-    content: "Ieri sera al Basement di Milano: 32 persone, energia incredibile. Grazie a tutti! 💪",
+  { id: 1, author: "Coach Marco", avatar: "M", time: "1 ora fa", city: "Milano", board: "coach",
+    content: "Ieri sera al Basement di Milano: 32 persone, energia incredibile. Grazie a tutti 💪",
     media: { type: "image", url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=70" },
     likes: 47, liked: false, comments: 8 },
-  { id: 2, author: "Anna M.", avatar: "A", time: "3 ore fa", city: "Roma",
+  { id: 2, author: "Anna M.", avatar: "A", time: "3 ore fa", city: "Roma", board: "utenti",
     content: "Oggi 60 giorni puliti. Non ci credo neanche io. Grazie a questa community ❤️",
     likes: 124, liked: false, comments: 23 },
-  { id: 3, author: "Luca P.", avatar: "L", time: "ieri", city: "Roma",
-    content: "Cammino di gruppo a Roma stamattina. Domenica prossima si replica, chi c'è?",
+  { id: 3, author: "StandUpWay", avatar: "S", time: "5 ore fa", board: "pubblica",
+    content: "Sapevi che il primo colloquio è gratuito? 30 minuti per capire dove sei e cosa può aiutarti davvero.",
+    likes: 18, liked: false, comments: 4 },
+  { id: 4, author: "Giulia · familiare", avatar: "G", time: "ieri", city: "Verona", board: "familiari",
+    content: "Mio figlio oggi ha fatto il primo colloquio. Ho pianto per due ore, ma di sollievo. Grazie a chi mi ha consigliato di iniziare anche io un percorso parallelo.",
+    likes: 89, liked: false, comments: 17 },
+  { id: 5, author: "Luca P.", avatar: "L", time: "ieri", city: "Roma", board: "pubblica",
+    content: "Cammino di gruppo a Villa Ada stamattina. Domenica prossima si replica, chi c'è?",
     media: { type: "image", url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=70" },
     likes: 38, liked: false, comments: 5 },
+  { id: 6, author: "Dott.ssa Rossi", avatar: "R", time: "2 giorni fa", board: "professionisti",
+    content: "Pubblicato un nuovo articolo sulle ricadute nei primi 90 giorni. Lo trovate nei materiali del gruppo.",
+    likes: 22, liked: false, comments: 3 },
+  { id: 7, author: "Marco · 1 anno pulito", avatar: "M", time: "2 giorni fa", city: "Milano", board: "utenti",
+    content: "Un anno fa oggi era tutto buio. Oggi sono qui, con voi. Se ce l'ho fatta io, ce la potete fare anche voi.",
+    likes: 312, liked: false, comments: 58 },
+  { id: 8, author: "Sara · mamma", avatar: "S", time: "3 giorni fa", city: "Bologna", board: "familiari",
+    content: "Domanda alla community: come gestite il momento in cui torna a casa dopo il percorso? Consigli pratici?",
+    likes: 14, liked: false, comments: 21 },
 ];
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
-  { key: "bacheca", label: "Bacheca", icon: Newspaper },
-  { key: "eventi", label: "Eventi", icon: CalendarDays },
-  { key: "gruppi", label: "Gruppi", icon: Users },
+  { key: "bacheca",  label: "Bacheca",         icon: Newspaper },
+  { key: "incontri", label: "Incontri dal vivo", icon: CalendarDays },
+  { key: "gruppi",   label: "Gruppi",          icon: Users },
 ];
 
 const Community = () => {
   const [tab, setTab] = useState<Tab>("bacheca");
-
-  // Gruppi
-  const [audience, setAudience] = useState<AudienceKey | "tutti">("tutti");
-  const [query, setQuery] = useState("");
-  const [createOpen, setCreateOpen] = useState(false);
-  const [groupName, setGroupName] = useState("");
-  const [groupCity, setGroupCity] = useState("");
-  const [groupType, setGroupType] = useState<AudienceKey>("utenti");
-  const [groupDesc, setGroupDesc] = useState("");
-
-  // Bacheca
+  const [board, setBoard] = useState<BoardKey>("pubblica");
   const [posts, setPosts] = useState<BoardPost[]>(SEED_POSTS);
   const [composer, setComposer] = useState("");
   const [composerMedia, setComposerMedia] = useState<{ type: "image" | "video"; url: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredGroups = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return GROUPS.filter((n) => {
-      if (audience !== "tutti" && n.type !== audience) return false;
-      if (q && !`${n.city} ${n.region} ${n.name}`.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [audience, query]);
-
-  const byCity = useMemo(() => {
-    const map = new Map<string, { region: string; nodes: Group[] }>();
-    filteredGroups.forEach((n) => {
-      const cur = map.get(n.city) || { region: n.region, nodes: [] };
-      cur.nodes.push(n);
-      map.set(n.city, cur);
-    });
-    return Array.from(map.entries()).sort((a, b) => b[1].nodes.length - a[1].nodes.length);
-  }, [filteredGroups]);
-
-  const eventiByRegion = useMemo(() => {
-    const map = new Map<string, typeof EVENTI>();
-    EVENTI.forEach((e) => {
-      const arr = map.get(e.region) || [];
-      arr.push(e);
-      map.set(e.region, arr);
-    });
-    return Array.from(map.entries());
-  }, []);
-
-  const createGroup = () => {
-    if (!groupName.trim() || !groupCity.trim()) return;
-    toast.success("Gruppo creato!", { description: `${groupName} · ${groupCity}` });
-    setCreateOpen(false);
-    setGroupName(""); setGroupCity(""); setGroupDesc("");
-  };
+  const unlocked = isPercorsoActive();
+  const currentBoard = BOARDS.find((b) => b.key === board)!;
+  const boardLocked = currentBoard.private && !unlocked;
+  const filteredPosts = posts.filter((p) => p.board === board);
 
   const onPickMedia = (type: "image" | "video", e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const url = URL.createObjectURL(f);
-    setComposerMedia({ type, url });
+    setComposerMedia({ type, url: URL.createObjectURL(f) });
     e.target.value = "";
   };
 
   const publish = () => {
     if (!composer.trim() && !composerMedia) return;
     setPosts((prev) => [{
-      id: Date.now(), author: "Tu", avatar: "T", time: "Adesso",
+      id: Date.now(), author: "Tu", avatar: "T", time: "Adesso", board,
       content: composer.trim(), media: composerMedia ?? undefined,
       likes: 0, liked: false, comments: 0,
     }, ...prev]);
     setComposer(""); setComposerMedia(null);
-    toast.success("Post pubblicato in bacheca");
+    toast.success(`Post pubblicato in bacheca ${currentBoard.label}`);
   };
 
   const toggleLike = (id: number) => {
@@ -166,22 +126,22 @@ const Community = () => {
 
   return (
     <div className="min-h-screen bg-surface-0 pb-24">
-      {/* Header social-style */}
       <header className="sticky top-0 z-30 bg-surface-1/95 backdrop-blur border-b border-border/40 safe-area-top shadow-[var(--shadow-sm)]">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <BackButton />
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
               <Users className="w-4 h-4 text-primary-foreground" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className="text-base font-bold text-foreground leading-none">Community</h1>
               <p className="text-[10px] text-muted-foreground mt-0.5">2.847 membri attivi</p>
             </div>
           </div>
           <HeaderActions />
         </div>
-        {/* Tab menu */}
-        <nav className="flex border-t border-border/30">
+        {/* Tab bar — bottoni più grandi */}
+        <nav className="grid grid-cols-3 gap-1.5 px-3 pb-3">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -190,13 +150,14 @@ const Community = () => {
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors relative",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  "flex flex-col items-center justify-center gap-1 py-3 rounded-xl border transition-all",
+                  active
+                    ? "bg-primary/10 border-primary/40 text-primary shadow-sm"
+                    : "bg-surface-1 border-border text-muted-foreground hover:text-foreground hover:border-foreground/20"
                 )}
               >
-                <Icon className="w-4 h-4" />
-                {t.label}
-                {active && <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-primary rounded-full" />}
+                <Icon className="w-5 h-5" />
+                <span className="text-[11px] font-semibold leading-none">{t.label}</span>
               </button>
             );
           })}
@@ -206,325 +167,224 @@ const Community = () => {
       {/* === BACHECA === */}
       {tab === "bacheca" && (
         <div className="px-4 py-4 space-y-4">
-          {/* composer */}
-          <div className="rounded-2xl bg-surface-1 border border-border/40 p-3 space-y-3">
-            <div className="flex items-start gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">Tu</div>
-              <Textarea
-                value={composer}
-                onChange={(e) => setComposer(e.target.value)}
-                placeholder="Cosa vuoi condividere oggi?"
-                className="bg-transparent border-none p-0 min-h-[40px] resize-none text-sm focus-visible:ring-0 shadow-none"
-              />
-            </div>
-            {composerMedia && (
-              <div className="relative ml-11 rounded-xl overflow-hidden">
-                {composerMedia.type === "image" ? (
-                  <img src={composerMedia.url} alt="" className="w-full max-h-60 object-cover" />
-                ) : (
-                  <video src={composerMedia.url} controls className="w-full max-h-60" />
-                )}
-                <button
-                  onClick={() => setComposerMedia(null)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-            <div className="flex items-center justify-between pl-11 border-t border-border/30 pt-2">
-              <div className="flex items-center gap-1">
-                <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={(e) => onPickMedia("image", e)} />
-                <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={(e) => onPickMedia("video", e)} />
-                <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
-                  <ImagePlus className="w-4 h-4 text-emerald-500" /> Foto
-                </button>
-                <button onClick={() => videoInputRef.current?.click()} className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
-                  <VideoIcon className="w-4 h-4 text-rose-500" /> Video
-                </button>
-              </div>
-              <Button size="sm" onClick={publish} disabled={!composer.trim() && !composerMedia} className="h-8 text-xs px-3">
-                <Send className="w-3.5 h-3.5 mr-1" /> Pubblica
-              </Button>
+          {/* Selettore bacheca */}
+          <div>
+            <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-2 px-1">Scegli la bacheca</p>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+              {BOARDS.map((b) => {
+                const Icon = b.icon;
+                const active = board === b.key;
+                return (
+                  <button
+                    key={b.key}
+                    onClick={() => setBoard(b.key)}
+                    className={cn(
+                      "flex items-center gap-1.5 h-9 px-3 rounded-full border text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0",
+                      active
+                        ? `bg-gradient-to-br ${b.color}`
+                        : "bg-surface-1 border-border text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" /> {b.label}
+                    {b.private && <Lock className="w-2.5 h-2.5 opacity-70" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* feed */}
-          <div className="space-y-3">
-            {posts.map((p) => (
-              <article key={p.id} className="bg-surface-1 border border-border/40 rounded-2xl overflow-hidden">
-                <header className="flex items-center gap-2.5 p-3">
-                  <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center text-sm font-semibold text-primary">{p.avatar}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{p.author}</p>
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
-                      {p.time}
-                      {p.city && <><span>·</span><MapPin className="w-2.5 h-2.5" />{p.city}</>}
-                    </p>
-                  </div>
-                </header>
-                {p.content && <p className="px-3 pb-3 text-sm text-foreground/90 leading-relaxed">{p.content}</p>}
-                {p.media?.type === "image" && <img src={p.media.url} alt="" className="w-full max-h-80 object-cover" />}
-                {p.media?.type === "video" && <video src={p.media.url} controls className="w-full max-h-80" />}
-                <div className="flex items-center gap-1 px-2 py-1.5 border-t border-border/20">
-                  <button onClick={() => toggleLike(p.id)} className={cn("flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs transition-colors", p.liked ? "text-primary font-semibold bg-primary/5" : "text-muted-foreground hover:bg-secondary/50")}>
-                    <ThumbsUp className={cn("w-4 h-4", p.liked && "fill-primary")} /> {p.likes}
-                  </button>
-                  <Link to="/community/feed" className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50">
-                    <MessageCircle className="w-4 h-4" /> {p.comments}
-                  </Link>
-                  <button className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50">
-                    <Send className="w-4 h-4" /> Condividi
-                  </button>
-                </div>
-              </article>
-            ))}
+          {/* Header bacheca corrente */}
+          <div className={cn("rounded-2xl border bg-gradient-to-br p-3 flex items-center gap-3", currentBoard.color)}>
+            <currentBoard.icon className="w-5 h-5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold leading-none">Bacheca {currentBoard.label}</p>
+              <p className="text-[11px] opacity-80 mt-0.5">{currentBoard.desc}</p>
+            </div>
+            {currentBoard.private && (
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-background/40">
+                <Lock className="w-2 h-2" /> Privata
+              </span>
+            )}
           </div>
+
+          {boardLocked ? (
+            <div className="rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-6 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto">
+                <Lock className="w-6 h-6 text-primary" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">Bacheca riservata</p>
+              <p className="text-xs text-muted-foreground">Per accedere devi essere iscritto a un percorso o appartenere a questa categoria.</p>
+              <Link to="/percorsi">
+                <Button variant="cta" size="sm">Inizia un percorso</Button>
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* Composer */}
+              <div className="rounded-2xl bg-surface-1 border border-border/40 p-3 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">Tu</div>
+                  <Textarea value={composer} onChange={(e) => setComposer(e.target.value)} placeholder={`Scrivi qualcosa nella bacheca ${currentBoard.label.toLowerCase()}…`}
+                    className="bg-transparent border-none p-0 min-h-[40px] resize-none text-sm focus-visible:ring-0 shadow-none" />
+                </div>
+                {composerMedia && (
+                  <div className="relative ml-11 rounded-xl overflow-hidden">
+                    {composerMedia.type === "image"
+                      ? <img src={composerMedia.url} alt="" className="w-full max-h-60 object-cover" />
+                      : <video src={composerMedia.url} controls className="w-full max-h-60" />}
+                    <button onClick={() => setComposerMedia(null)} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pl-11 border-t border-border/30 pt-2">
+                  <div className="flex items-center gap-1">
+                    <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={(e) => onPickMedia("image", e)} />
+                    <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={(e) => onPickMedia("video", e)} />
+                    <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50">
+                      <ImagePlus className="w-4 h-4 text-emerald-500" /> Foto
+                    </button>
+                    <button onClick={() => videoInputRef.current?.click()} className="flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50">
+                      <VideoIcon className="w-4 h-4 text-rose-500" /> Video
+                    </button>
+                  </div>
+                  <Button size="sm" onClick={publish} disabled={!composer.trim() && !composerMedia} className="h-8 text-xs px-3">
+                    <Send className="w-3.5 h-3.5 mr-1" /> Pubblica
+                  </Button>
+                </div>
+              </div>
+
+              {/* Feed */}
+              <div className="space-y-3">
+                {filteredPosts.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-6">Ancora nessun post in questa bacheca.</p>
+                )}
+                {filteredPosts.map((p) => (
+                  <article key={p.id} className="bg-surface-1 border border-border/40 rounded-2xl overflow-hidden">
+                    <header className="flex items-center gap-2.5 p-3">
+                      <div className="w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-semibold">{p.avatar}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{p.author}</p>
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                          {p.time}
+                          {p.city && <><span>·</span><MapPin className="w-2.5 h-2.5" />{p.city}</>}
+                        </p>
+                      </div>
+                    </header>
+                    {p.content && <p className="px-3 pb-3 text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{p.content}</p>}
+                    {p.media?.type === "image" && <img src={p.media.url} alt="" className="w-full max-h-80 object-cover" />}
+                    {p.media?.type === "video" && <video src={p.media.url} controls className="w-full max-h-80" />}
+                    <div className="flex items-center gap-1 px-2 py-1.5 border-t border-border/20">
+                      <button onClick={() => toggleLike(p.id)} className={cn("flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs transition-colors",
+                        p.liked ? "text-primary font-semibold bg-primary/5" : "text-muted-foreground hover:bg-secondary/50")}>
+                        <ThumbsUp className={cn("w-4 h-4", p.liked && "fill-primary")} /> {p.likes}
+                      </button>
+                      <button className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50">
+                        <MessageCircle className="w-4 h-4" /> {p.comments}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
-      {/* === EVENTI === */}
-      {tab === "eventi" && (
-        <div className="px-4 py-4 space-y-5">
+      {/* === INCONTRI DAL VIVO === */}
+      {tab === "incontri" && (
+        <div className="px-4 py-4 space-y-3">
           <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 p-4">
             <div className="flex items-center gap-2 mb-1">
               <CalendarDays className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              <h2 className="text-sm font-bold text-foreground">Eventi e incontri dal vivo</h2>
+              <h2 className="text-sm font-bold text-foreground">Incontri dal vivo</h2>
             </div>
-            <p className="text-[11px] text-muted-foreground">Trova un incontro vicino a te, organizzato per regione.</p>
+            <p className="text-[11px] text-muted-foreground">
+              <strong>Basement</strong>: incontri pomeridiani sul territorio (3 ore).<br/>
+              <strong>StandLab</strong>: eventi di una giornata in città.
+            </p>
           </div>
 
-          {eventiByRegion.map(([region, list]) => (
-            <section key={region} className="space-y-2">
-              <div className="flex items-center gap-2 px-1">
-                <Globe2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">{region}</h3>
-                <span className="text-[10px] text-muted-foreground">· {list.length} {list.length === 1 ? "evento" : "eventi"}</span>
-              </div>
-              <div className="space-y-2">
-                {list.map((e) => (
-                  <Link key={e.id} to={e.to} className="block bg-surface-1 border border-border/40 rounded-2xl p-3 hover:border-amber-500/40 transition-all">
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex flex-col items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
-                        <CalendarDays className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground leading-tight">{e.title}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{e.city}</span>
-                          <span>·</span>
-                          <span>{e.when}</span>
-                        </p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
+          <div className="space-y-2.5">
+            {INCONTRI.map((e) => {
+              const meta = TIPO_META[e.tipo as keyof typeof TIPO_META];
+              return (
+                <Link key={e.id} to={e.to}
+                  className={cn("block bg-surface-1 border rounded-2xl p-4 hover:border-primary/30 transition-all", meta.color.split(" ")[2])}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0", meta.color)}>
+                      <CalendarDays className="w-5 h-5" />
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ))}
-
-          <Link to="/insede" className="block text-center text-xs text-primary font-semibold py-3 rounded-xl border border-dashed border-border">
-            Esplora tutti gli incontri in sede →
-          </Link>
+                    <div className="flex-1 min-w-0">
+                      <span className={cn("inline-block text-[10px] font-bold px-2 py-0.5 rounded-full", meta.color)}>{meta.label}</span>
+                      <h3 className="font-semibold text-foreground text-sm mt-1 leading-tight">{e.title}</h3>
+                      <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+                        <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{e.data}</span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{e.ora}</span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{e.city}</span>
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
 
       {/* === GRUPPI === */}
       {tab === "gruppi" && (
         <div className="px-4 py-4 space-y-5">
-          {/* Gruppi riservati nazionali */}
-          <section className="space-y-2.5">
-            <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Lock className="w-4 h-4 text-primary" />
-                <h2 className="text-sm font-bold text-foreground">Gruppi riservati</h2>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                Spazi privati con accesso verificato. Richiedi l'ingresso per partecipare.
-              </p>
+          <div className="rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/30 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h2 className="text-sm font-bold text-foreground">Una community sola, mille storie</h2>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {RESERVED_NATIONAL.map((g) => {
-                const Icon = g.icon;
-                return (
-                  <button
-                    key={g.key}
-                    onClick={() => toast.info("Richiesta inviata", { description: "Sarai verificato/a a breve." })}
-                    className="text-left bg-surface-1 border border-border/40 rounded-2xl p-3 hover:border-primary/40 transition-all relative"
-                  >
-                    <span className="absolute top-2 right-2 inline-flex items-center gap-0.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
-                      <Lock className="w-2 h-2" /> Privato
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-2">
-                      <Icon className="w-4.5 h-4.5" />
-                    </div>
-                    <p className="text-sm font-semibold text-foreground leading-tight">{g.label}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{g.members} membri verificati</p>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Gruppi locali */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Compass className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h2 className="text-sm font-bold text-foreground">Gruppi locali</h2>
-              </div>
-              <button
-                onClick={() => setCreateOpen(true)}
-                className="flex items-center gap-1 h-8 px-3 rounded-full bg-emerald-600 text-white text-xs font-semibold shadow-[var(--shadow-sm)] hover:opacity-90 transition-opacity"
-              >
-                <Plus className="w-3.5 h-3.5" /> Crea
-              </button>
-            </div>
-
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cerca per città, regione o nome…"
-                className="pl-9"
-              />
-            </div>
-
-            <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-hide">
-              {[{ key: "tutti" as const, label: "Tutti", icon: Globe2 }, ...AUDIENCES].map((a) => {
-                const Icon = a.icon;
-                const active = audience === a.key;
-                return (
-                  <button
-                    key={a.key}
-                    onClick={() => setAudience(a.key as any)}
-                    className={cn(
-                      "flex-shrink-0 flex items-center gap-1.5 px-3 h-8 rounded-full border text-xs font-semibold transition-all",
-                      active
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-surface-1 text-foreground border-border hover:border-foreground/30"
-                    )}
-                  >
-                    <Icon className="w-3.5 h-3.5" /> {a.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {byCity.length === 0 ? (
-              <div className="text-center py-12 text-sm text-muted-foreground">
-                Nessun gruppo trovato. Prova a cambiare filtro o crealo tu.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {byCity.map(([city, data]) => (
-                  <div key={city} className="space-y-2">
-                    <div className="flex items-center gap-2 px-1">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-foreground leading-none">{city}</h4>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{data.region}</p>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground">{data.nodes.length} {data.nodes.length === 1 ? "gruppo" : "gruppi"}</span>
-                    </div>
-                    <div className="bg-surface-1 border border-border/40 rounded-2xl divide-y divide-border/40 overflow-hidden">
-                      {data.nodes.map((n) => {
-                        const meta = TYPE_META[n.type];
-                        const Icon = meta.icon;
-                        return (
-                          <Link key={n.id} to="/community/feed" className="flex items-center gap-3 p-3 hover:bg-secondary/40 transition-colors">
-                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", meta.color)}>
-                              <Icon className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="text-sm font-semibold text-foreground truncate">{n.name}</p>
-                                {n.verified && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400">✓</span>
-                                )}
-                                {n.reserved && (
-                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
-                                    <Lock className="w-2 h-2" /> Riservato
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-muted-foreground mt-0.5">
-                                {meta.label} · {n.members} membri · {n.city}
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
-
-      {/* Dialog Crea gruppo */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-[380px] rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Crea il tuo gruppo</DialogTitle>
-            <DialogDescription>
-              In 30 secondi. Sarai il referente del tuo spazio.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Per chi è il gruppo?</p>
-              <div className="flex flex-wrap gap-1.5">
-                {AUDIENCES.map((a) => {
-                  const Icon = a.icon;
-                  const active = groupType === a.key;
-                  return (
-                    <button
-                      key={a.key}
-                      onClick={() => setGroupType(a.key)}
-                      className={cn(
-                        "flex items-center gap-1.5 h-8 px-3 rounded-full border text-xs font-medium transition-all",
-                        active ? "border-primary bg-primary/10 text-primary" : "border-border bg-surface-1 text-foreground"
-                      )}
-                    >
-                      <Icon className="w-3.5 h-3.5" /> {a.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nome</p>
-              <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="es. Cerchio del mattino" maxLength={60} />
-            </div>
-
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Città</p>
-              <Input value={groupCity} onChange={(e) => setGroupCity(e.target.value)} placeholder="es. Bologna" maxLength={40} />
-            </div>
-
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Descrizione <span className="text-muted-foreground/60 normal-case font-normal">(opzionale)</span></p>
-              <Textarea value={groupDesc} onChange={(e) => setGroupDesc(e.target.value)} placeholder="Cosa rende speciale il vostro gruppo?" maxLength={200} className="min-h-[60px] resize-none" />
-            </div>
-
-            <Button onClick={createGroup} disabled={!groupName.trim() || !groupCity.trim()} className="w-full">
-              <Plus className="w-4 h-4 mr-1.5" /> Crea gruppo
-            </Button>
-            <p className="text-[10px] text-muted-foreground text-center">
-              🔒 Privacy garantita · Sarai moderatore del tuo spazio
+            <p className="text-[12px] text-foreground/85 leading-relaxed">
+              Utenti, familiari e professionisti — coach, psicologi e centri di cura — insieme dentro StandUpWay.
+              Uno spazio sicuro, riservato e alla pari, dove la diversità di esperienze diventa la tua forza.
             </p>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <section className="space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">Sotto-cerchie</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {SUB_CIRCLES.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => toast.info(`${s.label}`, { description: "Spazio riservato. Richiedi accesso al tuo coach." })}
+                    className="flex items-center gap-2 p-3 rounded-2xl border border-border bg-surface-1 hover:border-primary/40 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground leading-tight">{s.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{s.members} membri</p>
+                    </div>
+                    <Lock className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {!unlocked && (
+            <div className="rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-4 text-center space-y-2">
+              <Lock className="w-5 h-5 text-primary mx-auto" />
+              <p className="text-xs font-semibold text-foreground">I gruppi sono riservati a chi è iscritto a un percorso.</p>
+              <Link to="/percorsi" className="inline-block text-xs font-semibold text-primary underline">
+                Inizia il tuo percorso →
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       <BottomNav />
     </div>

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
-import { trackEvent, trackCta } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
+import { BackButton } from "@/components/BackButton";
 import { Clock, Play, BookOpen, Check, CreditCard, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +41,6 @@ const Corsi = () => {
   const [paymentMethod, setPaymentMethod] = useState<"carta" | "bonifico" | null>(null);
 
   const handleCorsoClick = (corso: typeof corsiOnDemand[0]) => {
-    trackEvent("corso_click", "corsi", { corso_id: corso.id, title: corso.title, free: corso.free, price: corso.price });
     if (corso.free) {
       navigate(`/corso/${corso.id}`);
     } else {
@@ -51,13 +51,9 @@ const Corsi = () => {
     }
   };
 
-  const handleStartPayment = () => {
-    trackCta("corso_purchase_intent", "corsi", { corso: selectedCorso?.title, price: selectedCorso?.price });
-    setShowPayment(true);
-  };
+  const handleStartPayment = () => setShowPayment(true);
 
   const handleConfirmPayment = () => {
-    trackCta("corso_purchase_complete", "corsi", { corso: selectedCorso?.title, price: selectedCorso?.price, method: "card" });
     toast({ title: "Acquisto completato! ✅", description: `${selectedCorso?.title} - Buono studio!` });
     setShowPurchase(false);
     setShowPayment(false);
@@ -67,8 +63,9 @@ const Corsi = () => {
   return (
     <div className="min-h-screen bg-surface-0 pb-24">
       <header className="bg-surface-1 border-b border-border/40 px-4 py-4 safe-area-top shadow-[var(--shadow-sm)]">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground">Corsi</h1>
             <p className="text-sm text-muted-foreground mt-1">Corsi online da seguire al tuo ritmo</p>
           </div>

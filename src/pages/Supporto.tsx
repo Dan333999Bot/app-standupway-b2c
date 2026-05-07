@@ -83,7 +83,7 @@ const Supporto = () => {
 
     const userMsg: Message = { id: Date.now(), role: "user", content: input.trim(), time: timeStr };
     const currentInput = input.trim();
-    trackEvent("chat_message_sent", "supporto", { message_count: messages.length + 1, has_prenota: currentInput.toLowerCase().includes("prenot") });
+    trackEvent("chat_message_sent", "supporto", { message_count: messages.length + 1 });
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);

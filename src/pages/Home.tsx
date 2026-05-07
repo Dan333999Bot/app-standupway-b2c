@@ -1,65 +1,173 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { usePageTracking } from "@/hooks/usePageTracking";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
-import { QuickAccessBar } from "@/components/QuickAccessBar";
 import { Link } from "react-router-dom";
 import {
-  Flame, BookOpen, Brain, Wind, Target, ArrowRight,
-  Heart, Users, Star, ChevronRight, Sparkles, Shield,
-  MessageCircle, GraduationCap, MapPin, ClipboardCheck,
-  Video, CalendarDays, Clock, Coins, Check,
+  Heart, ArrowRight, PlayCircle, Sparkles, Target, Flame,
+  ClipboardList, Calendar as CalendarIcon, BookOpen, FileText,
+  CheckCircle2, Smartphone, Search, MessageSquare, Rocket, Users, Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePageTracking } from "@/hooks/usePageTracking";
-import { trackEvent, trackCta } from "@/lib/analytics";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { TokenPaywall } from "@/components/TokenPaywall";
-import { toast } from "sonner";
 
-interface Attivita {
-  id: string; icon: any; tag: string; tagClass: string;
-  title: string; when: string; durationMin: number; location: string; description: string;
-}
-
-const ATTIVITA_IMMINENTI: Attivita[] = [
-  { id: "webinar-comunita", icon: Video, tag: "Webinar · Online", tagClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-    title: "Come smettere senza andare in comunità", when: "Giovedì · 21:00", durationMin: 60, location: "Videochiamata Zoom",
-    description: "Un incontro live con il dott. Marco per esplorare alternative concrete al ricovero in comunità: percorsi ambulatoriali, supporto domiciliare e il ruolo della rete familiare." },
-  { id: "webinar-familiari", icon: Video, tag: "Webinar · Online", tagClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-    title: "Come gestire una persona con dipendenze in casa", when: "Martedì prossimo · 20:30", durationMin: 75, location: "Videochiamata Zoom",
-    description: "Strumenti pratici per familiari: come comunicare senza giudicare e prendersi cura di sé." },
-  { id: "basement-milano", icon: MapPin, tag: "Basement · Dal vivo", tagClass: "bg-primary/10 text-primary",
-    title: "Incontro Basement · Milano", when: "Sab 16 Mag · 18:30", durationMin: 90, location: "Via Tortona 15, Milano",
-    description: "Incontro mensile dal vivo con il gruppo di Milano. Condivisione, ascolto e aperitivo analcolico." },
+const quickLinks = [
+  { icon: ClipboardList, label: "Report", to: "/percorso/report" },
+  { icon: CalendarIcon, label: "Agenda", to: "/percorso/visite" },
+  { icon: Target, label: "Obiettivi", to: "/percorso/obiettivi" },
+  { icon: BookOpen, label: "Diario", to: "/percorso/diario" },
 ];
 
-export const AGENDA_KEY = "standup_agenda_extra";
+const steps = [
+  { n: 1, icon: Smartphone, title: "Entra in app", desc: "Hai già fatto il primo passo.", done: true },
+  { n: 2, icon: Search, title: "Esplora gli strumenti", desc: "Corsi, community, incontri dal vivo." },
+  { n: 3, icon: MessageSquare, title: "Primo colloquio", desc: "30 minuti con un professionista (49€)." },
+  { n: 4, icon: FileText, title: "Ricevi il preventivo", desc: "Un percorso personalizzato per te." },
+  { n: 5, icon: Rocket, title: "Inizia il percorso", desc: "Quando ti senti pronto/a." },
+  { n: 6, icon: Users, title: "Sfrutta la community", desc: "Ogni giorno, insieme a chi ti capisce." },
+];
+
+const PercorsoShowcase = ({ cleanDays }: { cleanDays: number }) => {
+  const [state, setState] = useState<1 | 2 | 3>(3);
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Target className="w-4 h-4 text-primary" />
+          <h2 className="text-base font-bold text-foreground">Il mio percorso</h2>
+        </div>
+        <div className="flex items-center gap-1 bg-secondary/60 rounded-full p-0.5">
+          {[1, 2, 3].map((n) => (
+            <button
+              key={n}
+              onClick={() => setState(n as 1 | 2 | 3)}
+              className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${
+                state === n ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {state === 1 && (
+        <div className="glass-card rounded-2xl p-4 border border-border/40 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-secondary text-muted-foreground font-bold uppercase tracking-wider">Senza percorso</span>
+            <span className="text-[10px] text-muted-foreground">Stato 1 di 3</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-secondary/60 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">Nessuno strumento attivo</p>
+              <p className="text-[11px] text-muted-foreground leading-snug">Inizia con il primo colloquio di 30 minuti (49€).</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {quickLinks.map((l) => (
+              <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
+                <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
+                <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
+                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
+                  <Lock className="w-2.5 h-2.5 text-background" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {state === 2 && (
+        <div className="glass-card rounded-2xl p-4 border border-amber-500/30 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">Dopo il colloquio</span>
+            <span className="text-[10px] text-muted-foreground">Stato 2 di 3</span>
+          </div>
+          <div className="flex items-center gap-3 pb-3 border-b border-border/30">
+            <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+              <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">Preventivo pronto</p>
+              <p className="text-[11px] text-muted-foreground leading-snug">Inizia il percorso per sbloccare gli strumenti.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <Link to="/percorso/preventivo" className="relative rounded-xl p-2.5 text-center bg-amber-500/10 border border-amber-500/40">
+              <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400 mx-auto" />
+              <p className="text-[10px] text-foreground font-semibold mt-1">Preventivo</p>
+            </Link>
+            {quickLinks.slice(1).map((l) => (
+              <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
+                <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
+                <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
+                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
+                  <Lock className="w-2.5 h-2.5 text-background" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {state === 3 && (
+        <div className="glass-card rounded-2xl p-4 border border-primary/30 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wider">Percorso attivo</span>
+            <span className="text-[10px] text-muted-foreground">Stato 3 di 3</span>
+          </div>
+          <div className="flex items-center gap-3 pb-3 border-b border-border/30">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500/30 to-red-600/20 flex items-center justify-center">
+              <Heart className="w-5 h-5 text-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">Cammino di libertà</p>
+              <p className="text-[10px] text-muted-foreground">Il tuo percorso è attivo</p>
+            </div>
+            <div className="flex flex-col items-center px-2.5 py-1 rounded-xl bg-primary/10">
+              <div className="flex items-center gap-1">
+                <Flame className="w-3.5 h-3.5 text-primary" />
+                <span className="text-base font-bold text-primary leading-none">{cleanDays}</span>
+              </div>
+              <span className="text-[9px] text-primary/70 font-medium">giorni</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {quickLinks.map((link) => (
+              <Link key={link.label} to={link.to}
+                className="glass-card rounded-xl p-2.5 text-center space-y-1 hover:border-primary/30 transition-colors">
+                <link.icon className="w-4 h-4 text-primary mx-auto" />
+                <p className="text-[10px] text-muted-foreground font-medium">{link.label}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CTA rosso sempre visibile */}
+      <Link to="/percorsi" className="block">
+        <Button variant="cta" size="lg" className="w-full">
+          Prenota il primo colloquio
+          <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </Link>
+    </section>
+  );
+};
 
 const Home = () => {
   usePageTracking("home");
   const [cleanDate] = useState<Date | undefined>(() => {
-    const saved = localStorage.getItem("standup_clean_date");
-    return saved ? new Date(saved) : undefined;
+    const s = localStorage.getItem("standup_clean_date");
+    return s ? new Date(s) : undefined;
   });
-  const [active, setActive] = useState<Attivita | null>(null);
-  const [paywallOpen, setPaywallOpen] = useState(false);
 
   const cleanDays = cleanDate
     ? Math.max(0, Math.floor((Date.now() - cleanDate.getTime()) / (1000 * 60 * 60 * 24)))
-    : null;
-
-  const confirmBooking = () => {
-    if (!active) return;
-    trackCta("activity_booked", "home", { activity: active.id, title: active.title });
-    try {
-      const cur = JSON.parse(localStorage.getItem(AGENDA_KEY) || "[]");
-      cur.push({ id: active.id, titolo: active.title, when: active.when, location: active.location,
-        durationMin: active.durationMin, tipo: active.location.toLowerCase().includes("zoom") ? "online" : "sede", at: Date.now() });
-      localStorage.setItem(AGENDA_KEY, JSON.stringify(cur));
-    } catch {}
-    toast.success("Prenotato! Lo trovi in agenda.", { description: active.title });
-    setActive(null);
-  };
+    : 12;
 
   return (
     <div className="min-h-screen bg-surface-0 pb-24">
@@ -74,186 +182,81 @@ const Home = () => {
           <HeaderActions />
         </div>
       </header>
-      <QuickAccessBar />
 
-      <div className="px-4 py-5 space-y-5">
-        {/* Welcome + Day Counter */}
-        <div className="glass-card rounded-2xl p-5 space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1 flex-1">
-              <h2 className="text-xl font-bold text-foreground">
-                {cleanDays !== null ? "Continua così! 💪" : "Bentornato 👋"}
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {cleanDays !== null
-                  ? "Ogni giorno conta. Sei più forte di ieri."
-                  : "Il primo passo è il più coraggioso. Siamo qui con te."}
-              </p>
-            </div>
-            {cleanDays !== null && (
-              <Link
-                to="/percorsi"
-                className="flex flex-col items-center px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary/15 transition-colors"
-              >
-                <div className="flex items-center gap-1">
-                  <Flame className="w-4 h-4 text-primary" />
-                  <span className="text-2xl font-bold text-primary leading-none">{cleanDays}</span>
-                </div>
-                <span className="text-[10px] text-primary/70 font-medium">giorni</span>
-              </Link>
-            )}
-          </div>
-          {cleanDays === null && (
-            <Link to="/percorsi">
-              <Button variant="default" size="sm" className="w-full">
-                <Flame className="w-4 h-4 mr-2" />
-                Inizia il tuo contagiorni
-              </Button>
-            </Link>
-          )}
-        </div>
+      <div className="px-4 py-5 space-y-6">
+        {/* === IL MIO PERCORSO — Showcase compatto 3 stati === */}
+        <PercorsoShowcase cleanDays={cleanDays} />
 
-        {/* Free Self-Assessment CTA */}
-        <Link to="/autovalutazione" className="block" onClick={() => trackCta("self_assessment", "home")}>
-          <div className="rounded-2xl p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
-                <ClipboardCheck className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">GRATUITO</span>
-                </div>
-                <h3 className="font-semibold text-foreground text-sm mt-1">Test di autovalutazione</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Scopri dove sei e cosa può aiutarti · 3 min</p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-primary flex-shrink-0" />
-            </div>
+        {/* Due video affiancati: 1 → 2 */}
+        <section className="space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Guarda in ordine</h3>
           </div>
-        </Link>
-
-        {/* Attività imminenti — promemoria */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-semibold text-foreground">Attività imminenti</h3>
-              <p className="text-[11px] text-muted-foreground">Tap per dettagli · 1 min = 1 token</p>
-            </div>
-            <Link to="/percorso/visite" className="text-xs text-primary font-medium flex items-center gap-1">
-              Agenda <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="space-y-2.5">
-            {ATTIVITA_IMMINENTI.map((att) => {
-              const Icon = att.icon;
-              return (
-                <button
-                  key={att.id}
-                  onClick={() => { setActive(att); trackEvent("activity_click", "home", { activity: att.id }); }}
-                  className="w-full text-left glass-card rounded-xl p-3.5 flex items-center gap-3 hover:border-primary/30 transition-all group"
-                >
-                  <div className="w-11 h-11 rounded-xl bg-secondary/60 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-5 h-5 text-foreground" />
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { n: 1, title: "Cos'è StandUpWay" },
+              { n: 2, title: "Come iniziare un percorso" },
+            ].map((v) => (
+              <div key={v.n} className="rounded-xl overflow-hidden border border-border/40 bg-surface-1">
+                <div className="relative aspect-video bg-secondary/40 flex items-center justify-center">
+                  <iframe title={v.title} src="about:blank" className="absolute inset-0 w-full h-full" allowFullScreen />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-secondary/40 pointer-events-none">
+                    <PlayCircle className="w-7 h-7 mb-1" />
+                    <span className="text-[9px] font-bold">VIDEO {v.n}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full ${att.tagClass}`}>
-                      {att.tag}
-                    </span>
-                    <p className="text-sm font-semibold text-foreground mt-0.5 leading-tight">{att.title}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-2">
-                      <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{att.when}</span>
-                      <span className="flex items-center gap-1 text-primary"><Coins className="w-3 h-3" />{att.durationMin}</span>
-                    </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
-                </button>
-              );
-            })}
+                </div>
+                <div className="px-2 py-2">
+                  <p className="text-[11px] font-semibold text-foreground leading-tight">{v.title}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
 
-        {/* Quick Access - paid services */}
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold text-foreground">Supporto professionale</h3>
-          {[
-            { icon: MapPin, title: "Incontri dal vivo", desc: "Nella tua città con il tuo gruppo", to: "/insede" },
-          ].map((service) => (
-            <Link
-              key={service.title}
-              to={service.to}
-              className="glass-card rounded-xl p-4 flex items-center gap-3 hover:border-primary/30 transition-all group"
-            >
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <service.icon className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{service.title}</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">{service.desc}</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-            </Link>
-          ))}
-        </div>
-
-
-        {/* Trust badges */}
-        <div className="flex items-center justify-center gap-4 py-2">
-          {["Detraibile", "Anonimato", "No impegno"].map((badge) => (
-            <div key={badge} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Star className="w-3 h-3 text-primary/50" />
-              <span>{badge}</span>
+        {/* === Step di rinascita === */}
+        <section className="space-y-3">
+          <div className="px-1">
+            <div className="flex items-center gap-2">
+              <Rocket className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Il tuo percorso di rinascita</h3>
             </div>
-          ))}
-        </div>
+            <p className="text-xs text-muted-foreground mt-1 ml-6">6 step semplici per ricominciare con StandUpWay</p>
+          </div>
+
+          <div className="relative pl-2">
+            {/* linea verticale */}
+            <div className="absolute left-[26px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary/60 via-primary/30 to-primary/10" />
+            <div className="space-y-3">
+              {steps.map((s) => (
+                <div key={s.n} className="relative flex items-start gap-3">
+                  <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border-2 ${
+                    s.done
+                      ? "bg-primary border-primary text-primary-foreground shadow-[0_0_0_4px_hsl(var(--primary)/0.15)]"
+                      : "bg-surface-1 border-border text-muted-foreground"
+                  }`}>
+                    {s.done ? <CheckCircle2 className="w-6 h-6" /> : <s.icon className="w-5 h-5" />}
+                  </div>
+                  <div className={`flex-1 glass-card rounded-xl p-3 ${s.done ? "border-primary/30" : "border-border/40"}`}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-foreground">
+                        <span className={`mr-1.5 text-xs font-bold ${s.done ? "text-primary" : "text-muted-foreground"}`}>
+                          {String(s.n).padStart(2, "0")}
+                        </span>
+                        {s.title}
+                      </p>
+                      {s.done && (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase">Fatto</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
-
-      {/* Dialog dettaglio attività */}
-      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
-        <DialogContent className="max-w-[360px] rounded-2xl">
-          {active && (
-            <>
-              <DialogHeader>
-                <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full self-start w-fit ${active.tagClass}`}>
-                  {active.tag}
-                </span>
-                <DialogTitle className="text-left text-base">{active.title}</DialogTitle>
-                <DialogDescription className="text-left">{active.description}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-2 py-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <CalendarDays className="w-3.5 h-3.5" /> {active.when}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="w-3.5 h-3.5" /> {active.durationMin} minuti
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <MapPin className="w-3.5 h-3.5" /> {active.location}
-                </div>
-                <div className="flex items-center justify-between p-3 mt-2 rounded-xl bg-primary/5 border border-primary/30">
-                  <span className="text-xs font-medium text-primary">Costo (1 min = 1 token)</span>
-                  <span className="text-sm font-bold text-primary flex items-center gap-1">
-                    <Coins className="w-3.5 h-3.5" /> {active.durationMin} token
-                  </span>
-                </div>
-              </div>
-              <Button onClick={() => setPaywallOpen(true)} className="w-full">
-                <Check className="w-4 h-4 mr-1.5" /> Prenota con i token
-              </Button>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {active && (
-        <TokenPaywall
-          open={paywallOpen}
-          onOpenChange={setPaywallOpen}
-          cost={active.durationMin}
-          reason={`Prenotazione: ${active.title}`}
-          itemLabel={`${active.title} · ${active.when}`}
-          onConfirm={confirmBooking}
-        />
-      )}
 
       <BottomNav />
     </div>

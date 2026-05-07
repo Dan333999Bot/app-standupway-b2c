@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Gift, Copy, Check, Share2, Users, ArrowRight, Ticket, ShoppingBag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -41,8 +42,9 @@ const Servizi = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="glass border-b border-border/50 px-4 py-4 safe-area-top">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground">Invita</h1>
             <p className="text-sm text-muted-foreground mt-1">Aiuta qualcuno, risparmia sui corsi</p>
           </div>

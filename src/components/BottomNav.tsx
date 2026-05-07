@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Route, Headphones, Gift, Users } from "lucide-react";
+import { Home, Route, Headphones, BookOpen, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const BottomNav = () => {
@@ -9,7 +9,7 @@ export const BottomNav = () => {
     { label: "Home", href: "/home", icon: Home, match: ["/home", "/"] },
     { label: "Percorsi", href: "/percorsi", icon: Route, match: ["/percorsi", "/percorso"] },
     { label: "Supporto", href: "/supporto", icon: Headphones, isCenter: true, match: ["/supporto"] },
-    { label: "Invita", href: "/invita", icon: Gift, match: ["/invita"] },
+    { label: "Corsi", href: "/attivita", icon: BookOpen, match: ["/attivita", "/corsi", "/eventi", "/insede"] },
     { label: "Community", href: "/community", icon: Users, match: ["/community"] },
   ];
 

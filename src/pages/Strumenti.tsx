@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
-import { trackEvent, trackCta } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
+import { BackButton } from "@/components/BackButton";
 import { Link } from "react-router-dom";
 import {
   BookOpen, Brain, Wind, Target, Flame, ClipboardCheck,
@@ -38,7 +39,6 @@ const BreathingExercise = () => {
   }, [active, phase]);
 
   const stop = () => {
-    trackEvent("breathing_completed", "strumenti", { seconds_active: seconds });
     setActive(false);
     setPhase("inspira");
     setSeconds(0);
@@ -83,7 +83,7 @@ const BreathingExercise = () => {
       </div>
 
       <Button
-        onClick={active ? stop : () => { setActive(true); trackEvent("breathing_started", "strumenti"); }}
+        onClick={active ? stop : () => setActive(true)}
         variant={active ? "secondary" : "default"}
         className="w-full"
       >
@@ -115,8 +115,9 @@ const Strumenti = () => {
   return (
     <div className="min-h-screen bg-surface-0 pb-24">
       <header className="bg-surface-1 border-b border-border/40 px-4 py-3 safe-area-top shadow-[var(--shadow-sm)]">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">Strumenti</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Risorse gratuite per il tuo benessere</p>
           </div>

@@ -1,6 +1,6 @@
+import { trackCta } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Phone, ArrowRight } from "lucide-react";
-import { trackCta } from "@/lib/analytics";
 
 export const HeroSection = () => {
   return (

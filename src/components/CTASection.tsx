@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Phone, ArrowRight } from "lucide-react";
-import { trackCta } from "@/lib/analytics";
 
 export const CTASection = () => {
   return (
@@ -18,11 +17,11 @@ export const CTASection = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="hero" size="xl" onClick={() => trackCta("cta_section_parla_supporto", "landing")}>
+            <Button variant="hero" size="xl">
               <Phone className="w-5 h-5" />
               Parla con il Supporto
             </Button>
-            <Button variant="ghost" size="lg" onClick={() => trackCta("cta_section_scopri", "landing")}>
+            <Button variant="ghost" size="lg">
               Scopri di più
               <ArrowRight className="w-4 h-4" />
             </Button>
