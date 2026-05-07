@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarCheck, Clock, CheckCircle2, Loader2 } from "lucide-react";
 import { usePageTracking } from "@/hooks/usePageTracking";
+import { useAppConfig } from "@/hooks/useAppConfig";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -19,6 +20,8 @@ function formatDate(d: Date) {
 const Prenota = () => {
   usePageTracking("prenota");
   const navigate = useNavigate();
+  const config = useAppConfig();
+  const stripeUrl = config["stripe_colloquio_url"];
 
   const [step, setStep] = useState<Step>("info");
   const [form, setForm] = useState({ nome: "", cognome: "", email: "", telefono: "" });
@@ -53,6 +56,8 @@ const Prenota = () => {
     setSubmitting(false);
     if (err) {
       setError("Errore durante la prenotazione. Riprova.");
+    } else if (stripeUrl) {
+      window.location.href = stripeUrl;
     } else {
       setStep("done");
     }
