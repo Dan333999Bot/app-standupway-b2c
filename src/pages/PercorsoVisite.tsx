@@ -72,9 +72,9 @@ const PercorsoVisite = () => {
 
   useEffect(() => {
     const t = params.get("type");
-    if (t && tipiVisita.find(v => v.id === t)) openBookingWith(t);
+    if (t) navigate("/prenota", { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params]);
+  }, []);
 
   const openBooking = () => {
     setBookingStep("type");
@@ -142,7 +142,7 @@ const PercorsoVisite = () => {
               </div>
             </div>
           ))}
-          <Button variant="outline" size="sm" className="w-full text-xs" onClick={openBooking}>
+          <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate("/prenota")}>
             Prenota nuova visita
           </Button>
         </div>

@@ -290,7 +290,7 @@ const PercorsoQuestionario = () => {
 
           <div className="space-y-2.5">
             <Button asChild size="lg" className="w-full h-14 text-base font-semibold" onClick={() => trackEvent("questionario_book_colloquio", "percorso_questionario", { percorso: id, score, level: score >= 12 ? "alto" : score >= 6 ? "medio" : "basso" })}>
-              <Link to={`/percorso/visite?type=colloquio-gratuito`}>
+              <Link to="/prenota">
                 <CalendarCheck className="w-5 h-5 mr-2" /> Prenota il colloquio · 49€
               </Link>
             </Button>
