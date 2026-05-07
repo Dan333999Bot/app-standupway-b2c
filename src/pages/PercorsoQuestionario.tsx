@@ -245,6 +245,9 @@ const PercorsoQuestionario = () => {
         score,
         max_score: maxScore,
         result_level: level,
+      }).then(({ error }) => {
+        if (error) console.error("[SW] questionnaire insert error:", error);
+        else console.log("[SW] questionnaire saved ok");
       });
     }
   }, [phase, i, steps.length, score, id]);
