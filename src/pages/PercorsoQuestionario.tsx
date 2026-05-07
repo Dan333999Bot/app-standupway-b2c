@@ -342,6 +342,7 @@ const PercorsoQuestionario = () => {
   }
 
   const next = (weight = 0) => {
+    console.log("[SW] next()", { i, stepsLen: steps.length, weight });
     const newScore = score + weight;
     const newI = i + 1;
     trackFunnel(id || "questionario", `step_${i}`, { weight, score: newScore, percorso: id });
