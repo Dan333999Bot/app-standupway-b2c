@@ -58,7 +58,7 @@ const StateSenzaPercorso = ({ stripeUrl }: { stripeUrl?: string }) => (
         </div>
       ))}
     </div>
-    <Link to="/prenota" className="block">
+    <Link to="/percorsi" className="block">
       <Button variant="cta" size="lg" className="w-full">
         Prenota il primo colloquio · 49€ <ArrowRight className="w-4 h-4 ml-1" />
       </Button>

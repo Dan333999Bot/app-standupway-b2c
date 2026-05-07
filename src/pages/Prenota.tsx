@@ -9,7 +9,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
-type Step = "info" | "date" | "time" | "confirm" | "done";
+type Step = "date" | "time" | "info" | "confirm" | "done";
 
 const TIME_SLOTS = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 
@@ -17,13 +17,27 @@ function formatDate(d: Date) {
   return d.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
+const STEP_LABEL: Record<Step, string> = {
+  date: "Scegli una data",
+  time: "Scegli un orario",
+  info: "I tuoi dati",
+  confirm: "Conferma e paga",
+  done: "Prenotazione confermata",
+};
+
+const STEP_BACK: Partial<Record<Step, Step>> = {
+  time: "date",
+  info: "time",
+  confirm: "info",
+};
+
 const Prenota = () => {
   usePageTracking("prenota");
   const navigate = useNavigate();
   const config = useAppConfig();
   const stripeUrl = config["stripe_colloquio_url"];
 
-  const [step, setStep] = useState<Step>("info");
+  const [step, setStep] = useState<Step>("date");
   const [form, setForm] = useState({ nome: "", cognome: "", email: "", telefono: "" });
   const [date, setDate] = useState<Date | undefined>();
   const [time, setTime] = useState<string | null>(null);
@@ -39,7 +53,7 @@ const Prenota = () => {
       return;
     }
     setError("");
-    setStep("date");
+    setStep("confirm");
   };
 
   const handleSubmit = async () => {
@@ -63,10 +77,6 @@ const Prenota = () => {
     }
   };
 
-  const stepBack: Partial<Record<Step, Step>> = {
-    date: "info", time: "date", confirm: "time",
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="glass border-b border-border/50 px-4 py-4 safe-area-top">
@@ -74,7 +84,7 @@ const Prenota = () => {
           {step !== "done" && (
             <button
               onClick={() => {
-                const prev = stepBack[step];
+                const prev = STEP_BACK[step];
                 if (prev) setStep(prev);
                 else navigate(-1);
               }}
@@ -85,46 +95,14 @@ const Prenota = () => {
           )}
           <div>
             <h1 className="font-semibold text-foreground text-base">Prenota il colloquio</h1>
-            <p className="text-[11px] text-muted-foreground">
-              {step === "info" && "I tuoi dati"}
-              {step === "date" && "Scegli una data"}
-              {step === "time" && "Scegli un orario"}
-              {step === "confirm" && "Conferma prenotazione"}
-              {step === "done" && "Prenotazione confermata"}
-            </p>
+            <p className="text-[11px] text-muted-foreground">{STEP_LABEL[step]}</p>
           </div>
         </div>
       </header>
 
       <div className="flex-1 px-4 py-6 pb-28 max-w-md mx-auto w-full">
 
-        {/* ── Step: info ── */}
-        {step === "info" && (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Inserisci i tuoi dati per completare la prenotazione.</p>
-            {(["nome", "cognome", "email", "telefono"] as const).map((k) => (
-              <div key={k}>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1.5 capitalize">
-                  {k === "email" ? "Email" : k === "telefono" ? "Telefono (opzionale)" : k.charAt(0).toUpperCase() + k.slice(1)}
-                  {k !== "telefono" && <span className="text-primary ml-1">*</span>}
-                </label>
-                <input
-                  type={k === "email" ? "email" : k === "telefono" ? "tel" : "text"}
-                  value={form[k]}
-                  onChange={set(k)}
-                  placeholder={k === "email" ? "nome@email.com" : k === "telefono" ? "+39 333 000 0000" : ""}
-                  className="w-full bg-secondary/50 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
-                />
-              </div>
-            ))}
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <Button onClick={handleInfoNext} className="w-full mt-2">
-              Avanti — scegli la data
-            </Button>
-          </div>
-        )}
-
-        {/* ── Step: date ── */}
+        {/* ── Step 1: data ── */}
         {step === "date" && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">Seleziona il giorno che preferisci.</p>
@@ -138,7 +116,7 @@ const Prenota = () => {
           </div>
         )}
 
-        {/* ── Step: time ── */}
+        {/* ── Step 2: orario ── */}
         {step === "time" && date && (
           <div className="space-y-4">
             <p className="text-sm font-medium text-foreground capitalize">{formatDate(date)}</p>
@@ -147,7 +125,7 @@ const Prenota = () => {
               {TIME_SLOTS.map((t) => (
                 <button
                   key={t}
-                  onClick={() => { setTime(t); setStep("confirm"); }}
+                  onClick={() => { setTime(t); setStep("info"); }}
                   className={cn(
                     "py-3 rounded-xl border text-sm font-semibold transition-all",
                     time === t
@@ -162,7 +140,33 @@ const Prenota = () => {
           </div>
         )}
 
-        {/* ── Step: confirm ── */}
+        {/* ── Step 3: dati personali ── */}
+        {step === "info" && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Inserisci i tuoi dati per completare la prenotazione.</p>
+            {(["nome", "cognome", "email", "telefono"] as const).map((k) => (
+              <div key={k}>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                  {k === "email" ? "Email" : k === "telefono" ? "Telefono (opzionale)" : k.charAt(0).toUpperCase() + k.slice(1)}
+                  {k !== "telefono" && <span className="text-primary ml-1">*</span>}
+                </label>
+                <input
+                  type={k === "email" ? "email" : k === "telefono" ? "tel" : "text"}
+                  value={form[k]}
+                  onChange={set(k)}
+                  placeholder={k === "email" ? "nome@email.com" : k === "telefono" ? "+39 333 000 0000" : ""}
+                  className="w-full bg-secondary/50 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                />
+              </div>
+            ))}
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <Button onClick={handleInfoNext} className="w-full mt-2">
+              Avanti — controlla il riepilogo
+            </Button>
+          </div>
+        )}
+
+        {/* ── Step 4: riepilogo + conferma ── */}
         {step === "confirm" && date && time && (
           <div className="space-y-4">
             <div className="glass-card rounded-2xl p-4 space-y-3">
@@ -200,16 +204,16 @@ const Prenota = () => {
             <Button onClick={handleSubmit} disabled={submitting} className="w-full h-12 text-base font-semibold">
               {submitting
                 ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Invio in corso…</>
-                : "Conferma prenotazione · 49€"
+                : "Conferma e vai al pagamento · 49€"
               }
             </Button>
             <p className="text-[11px] text-muted-foreground text-center">
-              Riceverai una conferma via email. Il pagamento verrà gestito durante il colloquio.
+              La prenotazione viene salvata e verrai reindirizzato al pagamento sicuro.
             </p>
           </div>
         )}
 
-        {/* ── Step: done ── */}
+        {/* ── Fallback: done (solo se Stripe non configurato) ── */}
         {step === "done" && (
           <div className="flex flex-col items-center justify-center min-h-[50vh] gap-5 text-center">
             <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
