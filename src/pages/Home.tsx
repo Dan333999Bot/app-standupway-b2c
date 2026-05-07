@@ -19,14 +19,18 @@ const quickLinks = [
   { icon: BookOpen, label: "Diario", to: "/percorso/diario" },
 ];
 
-const steps = [
-  { n: 1, icon: Smartphone, title: "Entra in app", desc: "Hai già fatto il primo passo.", done: true },
-  { n: 2, icon: Search, title: "Esplora gli strumenti", desc: "Corsi, community, incontri dal vivo." },
-  { n: 3, icon: MessageSquare, title: "Primo colloquio", desc: "30 minuti con un professionista (49€)." },
-  { n: 4, icon: FileText, title: "Ricevi il preventivo", desc: "Un percorso personalizzato per te." },
-  { n: 5, icon: Rocket, title: "Inizia il percorso", desc: "Quando ti senti pronto/a." },
-  { n: 6, icon: Users, title: "Sfrutta la community", desc: "Ogni giorno, insieme a chi ti capisce." },
-];
+function getSteps(userState: import("@/hooks/useUserState").UserState | null) {
+  const c = !!userState?.first_colloquio_done;
+  const p = !!userState?.percorso_active;
+  return [
+    { n: 1, icon: Smartphone,    title: "Entra in app",           desc: "Hai già fatto il primo passo.",                    done: true },
+    { n: 2, icon: Search,        title: "Esplora gli strumenti",  desc: "Corsi, community, incontri dal vivo.",             done: c || p },
+    { n: 3, icon: MessageSquare, title: "Primo colloquio",        desc: "30 minuti con un professionista (49€).",           done: c || p },
+    { n: 4, icon: FileText,      title: "Ricevi il preventivo",   desc: "Un percorso personalizzato per te.",               done: p },
+    { n: 5, icon: Rocket,        title: "Inizia il percorso",     desc: "Quando ti senti pronto/a.",                        done: p },
+    { n: 6, icon: Users,         title: "Sfrutta la community",   desc: "Ogni giorno, insieme a chi ti capisce.",           done: p },
+  ];
+}
 
 /* ─── Percorso states ─────────────────────────────────────────────────── */
 
@@ -95,7 +99,11 @@ const StateDopoColloquio = ({
           <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400 mx-auto" />
           <p className="text-[10px] text-foreground font-semibold mt-1">Preventivo</p>
         </Link>
-        {quickLinks.slice(1).map((l) => (
+        <Link to="/percorso/visite" className="rounded-xl p-2.5 text-center bg-primary/10 border border-primary/30">
+          <CalendarIcon className="w-4 h-4 text-primary mx-auto" />
+          <p className="text-[10px] text-foreground font-semibold mt-1">Agenda</p>
+        </Link>
+        {[quickLinks[2], quickLinks[3]].map((l) => (
           <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
             <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
             <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
@@ -212,6 +220,8 @@ const PercorsoShowcase = ({ cleanDays, config }: {
 const Home = () => {
   usePageTracking("home");
   const config = useAppConfig();
+  const { userState } = useUserState();
+  const steps = getSteps(userState);
   const [cleanDate] = useState<Date | undefined>(() => {
     const s = localStorage.getItem("standup_clean_date");
     return s ? new Date(s) : undefined;

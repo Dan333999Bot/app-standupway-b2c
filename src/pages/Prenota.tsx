@@ -60,6 +60,7 @@ const Prenota = () => {
     if (!date || !time) return;
     setSubmitting(true);
     const { error: err } = await supabase.from("appointments").insert({
+      user_id: localStorage.getItem("sw_user_id"),
       name: form.nome.trim(),
       surname: form.cognome.trim(),
       email: form.email.trim(),
