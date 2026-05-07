@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { trackFunnel, trackEvent } from "@/lib/analytics";
+import { supabase } from "@/lib/supabase";
 import { ArrowLeft, ArrowRight, Heart, Phone, Sparkles, Wind, BookOpen, Users, Home as HomeIcon, Clock, ShieldCheck, Lock, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -236,6 +237,15 @@ const PercorsoQuestionario = () => {
       setPhase("result");
       const level = score >= 12 ? "alto" : score >= 6 ? "medio" : "basso";
       trackFunnel(id || "questionario", "complete", { score, level, percorso: id, time_s: Math.round((Date.now() - startRef.current) / 1000) });
+      // Salva risultato su Supabase
+      const maxScore = steps.filter(s => s.kind === "question").length * 3;
+      supabase.from("questionnaire_responses").insert({
+        user_id: localStorage.getItem("sw_user_id"),
+        addiction_type: id,
+        score,
+        max_score: maxScore,
+        result_level: level,
+      });
     }
   }, [phase, i, steps.length, score, id]);
 
