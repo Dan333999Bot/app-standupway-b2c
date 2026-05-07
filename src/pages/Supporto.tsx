@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
+import { useUserState } from "@/hooks/useUserState";
 import { trackEvent } from "@/lib/analytics";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
@@ -14,93 +15,121 @@ interface Message {
   time: string;
 }
 
-const initialMessages: Message[] = [
-  {
-    id: 1,
-    role: "assistant",
-    content: "Ciao! 👋 Sono l'assistente AI di StandUp Way. Posso aiutarti a navigare l'app, rispondere alle tue domande sui percorsi, prenotare visite o semplicemente ascoltarti. Come posso aiutarti oggi?",
-    time: "Ora",
-  },
-];
+function getTimeStr() {
+  const now = new Date();
+  return `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+}
 
-const getAIResponse = (userMessage: string, history: Message[]): string => {
-  const msg = userMessage.toLowerCase();
-  
-  if (msg.includes("percors") || msg.includes("dipendenz")) {
-    return "Abbiamo diversi percorsi disponibili: **Crack/Cocaina**, **Alcol**, **Ludopatia**, **Oppiacei**, **Cannabis**, **Sesso e pornografia** e anche un percorso per le **famiglie**. Ogni percorso è personalizzato e prevede supporto online quotidiano con possibilità di visite in sede.\n\nVuoi sapere di più su un percorso specifico? 🤔";
+function renderMarkdown(text: string) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n/g, "<br/>");
+}
+
+// Welcome message and quick chips adapt to user state
+function getInitialMessage(userState: ReturnType<typeof useUserState>["userState"]): string {
+  if (userState?.percorso_active) {
+    return "Ciao! 👋 Sono qui con te ogni giorno nel tuo percorso. Come stai oggi? Cosa ti passa per la testa?";
   }
-  if (msg.includes("prezz") || msg.includes("cost") || msg.includes("quant")) {
-    return "Ecco i nostri prezzi:\n\n• **Colloquio singolo**: 49€ (il primo è gratuito!)\n• **Attività di gruppo settimanali**: 80€/settimana\n• **Supporto individuale settimanale**: 80€/settimana\n• **Visita medico/psichiatra**: 120€/h\n• **Percorso completo**: personalizzato\n\nTutte le spese sono **detraibili fiscalmente** come spese sanitarie. Vuoi prenotare qualcosa?";
+  if (userState?.first_colloquio_done) {
+    return "Ciao! 👋 Il tuo **preventivo personalizzato** è pronto nella sezione \"Il mio percorso\". Sono qui se hai domande, vuoi capire i prossimi passi o hai bisogno di supporto. Come posso aiutarti?";
   }
-  if (msg.includes("prenot") || msg.includes("visita") || msg.includes("appuntament")) {
-    return "Puoi prenotare una visita dalla sezione **Percorsi > Visite**. Abbiamo disponibilità per:\n\n• Colloqui con psicologo (online)\n• Visite psichiatriche (in sede)\n• Visite mediche (in sede)\n\nIl primo colloquio è **gratuito** e senza impegno. Vuoi che ti guidi nella prenotazione? 📅";
+  return "Ciao! 👋 Sono l'assistente AI di StandUp Way. Posso ascoltarti, rispondere alle tue domande e aiutarti a fare il primo passo. Come posso aiutarti oggi?";
+}
+
+function getQuickChips(userState: ReturnType<typeof useUserState>["userState"]): string[] {
+  if (userState?.percorso_active) {
+    return ["Come gestisco il craving?", "Ho avuto una ricaduta", "Voglio usare il diario", "Come sto andando?"];
   }
-  if (msg.includes("contagiorni") || msg.includes("giorni") || msg.includes("counter")) {
-    return "Puoi impostare il tuo contagiorni dalla sezione **Percorsi > Il mio percorso**. Clicca sul contatore 🔥 per selezionare la data in cui hai iniziato il tuo percorso di pulizia. Il contatore si aggiornerà automaticamente ogni giorno!";
+  if (userState?.first_colloquio_done) {
+    return ["Cos'è il preventivo?", "Quando posso iniziare?", "Ci sono eventi dal vivo?", "Ho bisogno di supporto"];
   }
-  if (msg.includes("community") || msg.includes("gruppo") || msg.includes("chat")) {
-    return "La nostra community è divisa in gruppi tematici:\n\n• **Alcol** - 342 membri\n• **Sostanze** - 218 membri\n• **Gioco d'azzardo** - 156 membri\n• **Familiari** - 189 membri\n• **La tua zona** - incontra persone nella tua città\n\nPuoi condividere la tua esperienza, leggere quelle degli altri e commentare. Tutto in anonimato e con rispetto. ❤️";
-  }
-  if (msg.includes("grazie") || msg.includes("ok") || msg.includes("perfett")) {
-    return "Di niente! 😊 Sono qui per te, quando vuoi. Ricorda: **chiedere aiuto è un atto di coraggio**, non di debolezza. Se hai altre domande, scrivi pure!";
-  }
-  if (msg.includes("come stai") || msg.includes("ciao") || msg.includes("buongiorno") || msg.includes("salut")) {
-    return "Ciao! 😊 Sto bene, grazie! Sono qui per aiutarti con qualsiasi cosa legata al tuo percorso StandUp. Puoi chiedermi informazioni su:\n\n• I **percorsi** disponibili\n• I **prezzi** dei servizi\n• Come **prenotare** una visita\n• Come funziona la **community**\n\nDimmi come posso esserti utile!";
-  }
-  if (msg.includes("aiut") || msg.includes("bisogno") || msg.includes("difficil") || msg.includes("male") || msg.includes("crisi")) {
-    return "Ti capisco, e sei nel posto giusto. 💚 Non sei solo/a in questo.\n\nEcco cosa puoi fare subito:\n\n1. **Scrivi nella community** - ci sono persone che capiscono esattamente come ti senti\n2. **Prenota un colloquio gratuito** - parla con un professionista, il primo incontro è gratis\n3. **Contatta il tuo coach di zona** - se sei in una delle nostre città, può organizzare un incontro dal vivo\n\nVuoi che ti aiuti a fare uno di questi passi?";
-  }
-  if (msg.includes("sede") || msg.includes("città") || msg.includes("dove")) {
-    return "Siamo presenti in **8 città italiane**:\n\n📍 Milano, Roma, Torino, Napoli, Bologna, Padova, Palermo e Cagliari\n\nOgni sede ha un coach dedicato che coordina la community locale e organizza incontri dal vivo. Puoi trovare la tua zona nella sezione **Community > La tua zona**.\n\nIn quale città ti trovi?";
-  }
-  
-  // Default contextual responses
-  const defaults = [
-    "Interessante! Dimmi di più, sono qui per ascoltarti e aiutarti. Se hai una domanda specifica sui nostri servizi, percorsi o sulla community, chiedimi pure. 💚",
-    "Capisco. Ogni percorso è diverso e personale. Se vuoi, posso darti informazioni sui nostri **percorsi**, sui **prezzi**, o aiutarti a **prenotare** un colloquio gratuito. Cosa preferisci?",
-    "Sono qui per te! Posso aiutarti con informazioni sui servizi, sulla community, o semplicemente ascoltarti. Non c'è fretta, prenditi il tempo che ti serve. 😊",
-  ];
-  
-  const idx = history.filter(m => m.role === "assistant").length % defaults.length;
-  return defaults[idx];
-};
+  return ["Quali percorsi avete?", "Quanto costa?", "Ho bisogno di aiuto", "Come funziona?"];
+}
 
 const Supporto = () => {
   usePageTracking("supporto");
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const { userState, loading: stateLoading } = useUserState();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Set initial message once userState loads
+  useEffect(() => {
+    if (stateLoading) return;
+    setMessages([{
+      id: 1,
+      role: "assistant",
+      content: getInitialMessage(userState),
+      time: "Ora",
+    }]);
+  }, [stateLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isStreaming]);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    const now = new Date();
-    const timeStr = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+  const sendMessage = useCallback(async (text?: string) => {
+    const content = (text ?? input).trim();
+    if (!content || isStreaming) return;
 
-    const userMsg: Message = { id: Date.now(), role: "user", content: input.trim(), time: timeStr };
-    const currentInput = input.trim();
+    const timeStr = getTimeStr();
+    const userMsg: Message = { id: Date.now(), role: "user", content, time: timeStr };
+
     trackEvent("chat_message_sent", "supporto", { message_count: messages.length + 1 });
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages(prev => [...prev, userMsg]);
     setInput("");
-    setIsTyping(true);
+    setIsStreaming(true);
 
-    // Simulate AI thinking delay
-    const delay = 800 + Math.random() * 1200;
-    setTimeout(() => {
-      setIsTyping(false);
-      const reply: Message = {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: getAIResponse(currentInput, [...messages, userMsg]),
-        time: timeStr,
-      };
-      setMessages((prev) => [...prev, reply]);
-    }, delay);
-  };
+    // Placeholder assistant message that will be filled by stream
+    const assistantId = Date.now() + 1;
+    setMessages(prev => [...prev, { id: assistantId, role: "assistant", content: "", time: timeStr }]);
+
+    const abortController = new AbortController();
+    abortRef.current = abortController;
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: abortController.signal,
+        body: JSON.stringify({
+          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          userState,
+        }),
+      });
+
+      if (!response.ok || !response.body) throw new Error("API error");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        fullText += decoder.decode(value, { stream: true });
+        const snapshot = fullText;
+        setMessages(prev =>
+          prev.map(m => m.id === assistantId ? { ...m, content: snapshot } : m)
+        );
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        setMessages(prev =>
+          prev.map(m => m.id === assistantId
+            ? { ...m, content: "Mi dispiace, si è verificato un errore. Riprova tra poco." }
+            : m
+          )
+        );
+      }
+    } finally {
+      setIsStreaming(false);
+      abortRef.current = null;
+    }
+  }, [input, isStreaming, messages, userState]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -108,6 +137,17 @@ const Supporto = () => {
       sendMessage();
     }
   };
+
+  const chips = getQuickChips(userState);
+  const showChips = messages.length <= 2 && !isStreaming;
+
+  if (stateLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -129,7 +169,7 @@ const Supporto = () => {
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 pb-4 space-y-3">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map((msg) => (
           <div key={msg.id} className={cn("flex gap-2", msg.role === "user" ? "justify-end" : "justify-start")}>
             {msg.role === "assistant" && (
@@ -143,12 +183,22 @@ const Supporto = () => {
                 ? "bg-primary text-primary-foreground rounded-br-md"
                 : "bg-secondary/60 text-foreground rounded-bl-md"
             )}>
-              <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{
-                __html: msg.content
-                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                  .replace(/\n/g, '<br/>')
-              }} />
-              <p className={cn("text-[10px] mt-1", msg.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground")}>{msg.time}</p>
+              {msg.content ? (
+                <div
+                  className="whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
+                />
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <Loader2 className="w-3 h-3 text-muted-foreground animate-spin" />
+                  <span className="text-xs text-muted-foreground">Sto scrivendo...</span>
+                </div>
+              )}
+              {msg.content && (
+                <p className={cn("text-[10px] mt-1", msg.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground")}>
+                  {msg.time}
+                </p>
+              )}
             </div>
             {msg.role === "user" && (
               <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
@@ -157,28 +207,14 @@ const Supporto = () => {
             )}
           </div>
         ))}
-        
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="flex gap-2 justify-start">
-            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-              <Bot className="w-3.5 h-3.5 text-primary" />
-            </div>
-            <div className="bg-secondary/60 rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
-              <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin" />
-              <span className="text-xs text-muted-foreground">Sta scrivendo...</span>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Quick actions */}
-      {messages.length <= 2 && (
+      {showChips && (
         <div className="px-4 pb-2 flex gap-2 flex-wrap">
-          {["Quali percorsi avete?", "Quanto costa?", "Ho bisogno di aiuto", "Come prenoto?"].map(q => (
+          {chips.map(q => (
             <button
               key={q}
-              onClick={() => { setInput(q); }}
+              onClick={() => sendMessage(q)}
               className="text-[11px] px-3 py-1.5 rounded-full bg-secondary border border-border text-foreground hover:bg-primary/10 hover:border-primary/30 transition-all"
             >
               {q}
@@ -197,7 +233,12 @@ const Supporto = () => {
             rows={1}
             className="flex-1 bg-secondary/50 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 max-h-24"
           />
-          <Button size="icon" onClick={sendMessage} disabled={!input.trim() || isTyping} className="rounded-xl h-10 w-10 flex-shrink-0">
+          <Button
+            size="icon"
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || isStreaming}
+            className="rounded-xl h-10 w-10 flex-shrink-0"
+          >
             <Send className="w-4 h-4" />
           </Button>
         </div>
