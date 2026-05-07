@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
+import { useUserState } from "@/hooks/useUserState";
+import { useAppConfig } from "@/hooks/useAppConfig";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import { Link } from "react-router-dom";
@@ -26,140 +28,198 @@ const steps = [
   { n: 6, icon: Users, title: "Sfrutta la community", desc: "Ogni giorno, insieme a chi ti capisce." },
 ];
 
-const PercorsoShowcase = ({ cleanDays }: { cleanDays: number }) => {
-  const [state, setState] = useState<1 | 2 | 3>(3);
+/* ─── Percorso states ─────────────────────────────────────────────────── */
+
+// Stato 1: nessun colloquio
+const StateSenzaPercorso = ({ stripeUrl }: { stripeUrl?: string }) => (
+  <div className="glass-card rounded-2xl p-4 border border-border/40 space-y-3">
+    <span className="text-[10px] px-2.5 py-1 rounded-full bg-secondary text-muted-foreground font-bold uppercase tracking-wider">
+      Prima del colloquio
+    </span>
+    <div className="flex items-center gap-3">
+      <div className="w-12 h-12 rounded-2xl bg-secondary/60 flex items-center justify-center flex-shrink-0">
+        <Sparkles className="w-6 h-6 text-muted-foreground" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-foreground">Nessuno strumento attivo</p>
+        <p className="text-[11px] text-muted-foreground leading-snug">
+          Inizia con il primo colloquio di 30 minuti (49€).
+        </p>
+      </div>
+    </div>
+    <div className="grid grid-cols-4 gap-2">
+      {quickLinks.map((l) => (
+        <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
+          <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
+          <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
+          <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
+            <Lock className="w-2.5 h-2.5 text-background" />
+          </div>
+        </div>
+      ))}
+    </div>
+    {stripeUrl ? (
+      <a href={stripeUrl} target="_blank" rel="noopener noreferrer" className="block">
+        <Button variant="cta" size="lg" className="w-full">
+          Prenota il primo colloquio · 49€ <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </a>
+    ) : (
+      <Link to="/percorsi" className="block">
+        <Button variant="cta" size="lg" className="w-full">
+          Prenota il primo colloquio · 49€ <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </Link>
+    )}
+  </div>
+);
+
+// Stato 2: colloquio fatto, preventivo pronto
+const StateDopoColloquio = ({
+  level, duration, percorsoType, stripeUrl,
+}: { level: string | null; duration: string | null; percorsoType: string | null; stripeUrl?: string }) => {
+  const planLabel = duration === '12m' ? 'Percorso 12 mesi' : 'Percorso 6 mesi';
+  const planDesc = level === 'alto'
+    ? 'Percorso intensivo con presa in carico completa (12 mesi)'
+    : 'Percorso personalizzato online + sede (6 mesi)';
+  const stripeTarget = duration === '12m' ? stripeUrl : stripeUrl;
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
+    <div className="glass-card rounded-2xl p-4 border border-amber-500/30 space-y-3">
+      <span className="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
+        Preventivo pronto
+      </span>
+      <div className="flex items-center gap-3 pb-3 border-b border-border/30">
+        <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+          <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-foreground">{planLabel}</p>
+          <p className="text-[11px] text-muted-foreground leading-snug">{planDesc}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        <Link to="/percorso/preventivo" className="relative rounded-xl p-2.5 text-center bg-amber-500/10 border border-amber-500/40">
+          <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400 mx-auto" />
+          <p className="text-[10px] text-foreground font-semibold mt-1">Preventivo</p>
+        </Link>
+        {quickLinks.slice(1).map((l) => (
+          <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
+            <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
+            <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
+            <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
+              <Lock className="w-2.5 h-2.5 text-background" />
+            </div>
+          </div>
+        ))}
+      </div>
+      {stripeTarget ? (
+        <a href={stripeTarget} target="_blank" rel="noopener noreferrer" className="block">
+          <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+            Inizia il percorso <ArrowRight className="w-4 h-4 ml-1" />
+          </Button>
+        </a>
+      ) : (
+        <Link to="/percorso/preventivo" className="block">
+          <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+            Vedi il tuo preventivo <ArrowRight className="w-4 h-4 ml-1" />
+          </Button>
+        </Link>
+      )}
+    </div>
+  );
+};
+
+// Stato 3: percorso attivo
+const StatePercorsoAttivo = ({ cleanDays }: { cleanDays: number }) => (
+  <div className="glass-card rounded-2xl p-4 border border-primary/30 space-y-3">
+    <span className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wider">
+      Percorso attivo
+    </span>
+    <div className="flex items-center gap-3 pb-3 border-b border-border/30">
+      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500/30 to-red-600/20 flex items-center justify-center">
+        <Heart className="w-5 h-5 text-foreground" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-foreground">Cammino di libertà</p>
+        <p className="text-[10px] text-muted-foreground">Il tuo percorso è attivo</p>
+      </div>
+      <div className="flex flex-col items-center px-2.5 py-1 rounded-xl bg-primary/10">
+        <div className="flex items-center gap-1">
+          <Flame className="w-3.5 h-3.5 text-primary" />
+          <span className="text-base font-bold text-primary leading-none">{cleanDays}</span>
+        </div>
+        <span className="text-[9px] text-primary/70 font-medium">giorni</span>
+      </div>
+    </div>
+    <div className="grid grid-cols-4 gap-2">
+      {quickLinks.map((link) => (
+        <Link key={link.label} to={link.to}
+          className="glass-card rounded-xl p-2.5 text-center space-y-1 hover:border-primary/30 transition-colors">
+          <link.icon className="w-4 h-4 text-primary mx-auto" />
+          <p className="text-[10px] text-muted-foreground font-medium">{link.label}</p>
+        </Link>
+      ))}
+    </div>
+  </div>
+);
+
+/* ─── Main Showcase ────────────────────────────────────────────────────── */
+
+const PercorsoShowcase = ({ cleanDays, config }: {
+  cleanDays: number;
+  config: Record<string, string>;
+}) => {
+  const { userState, loading } = useUserState();
+
+  if (loading) {
+    return (
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 px-1">
           <Target className="w-4 h-4 text-primary" />
           <h2 className="text-base font-bold text-foreground">Il mio percorso</h2>
         </div>
-        <div className="flex items-center gap-1 bg-secondary/60 rounded-full p-0.5">
-          {[1, 2, 3].map((n) => (
-            <button
-              key={n}
-              onClick={() => setState(n as 1 | 2 | 3)}
-              className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${
-                state === n ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
-            >
-              {n}
-            </button>
-          ))}
+        <div className="glass-card rounded-2xl p-6 border border-border/40 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </div>
+      </section>
+    );
+  }
+
+  const stripeColloquio = config['stripe_colloquio_url'];
+  const stripe6m = config['stripe_percorso_6m_url'];
+  const stripe12m = config['stripe_percorso_12m_url'];
+
+  const stripePercorso = userState?.percorso_duration === '12m' ? stripe12m : stripe6m;
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center gap-2 px-1">
+        <Target className="w-4 h-4 text-primary" />
+        <h2 className="text-base font-bold text-foreground">Il mio percorso</h2>
       </div>
 
-      {state === 1 && (
-        <div className="glass-card rounded-2xl p-4 border border-border/40 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] px-2.5 py-1 rounded-full bg-secondary text-muted-foreground font-bold uppercase tracking-wider">Senza percorso</span>
-            <span className="text-[10px] text-muted-foreground">Stato 1 di 3</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-secondary/60 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">Nessuno strumento attivo</p>
-              <p className="text-[11px] text-muted-foreground leading-snug">Inizia con il primo colloquio di 30 minuti (49€).</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            {quickLinks.map((l) => (
-              <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
-                <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
-                <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
-                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
-                  <Lock className="w-2.5 h-2.5 text-background" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {!userState?.first_colloquio_done && (
+        <StateSenzaPercorso stripeUrl={stripeColloquio} />
       )}
-
-      {state === 2 && (
-        <div className="glass-card rounded-2xl p-4 border border-amber-500/30 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">Dopo il colloquio</span>
-            <span className="text-[10px] text-muted-foreground">Stato 2 di 3</span>
-          </div>
-          <div className="flex items-center gap-3 pb-3 border-b border-border/30">
-            <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-              <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">Preventivo pronto</p>
-              <p className="text-[11px] text-muted-foreground leading-snug">Inizia il percorso per sbloccare gli strumenti.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            <Link to="/percorso/preventivo" className="relative rounded-xl p-2.5 text-center bg-amber-500/10 border border-amber-500/40">
-              <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400 mx-auto" />
-              <p className="text-[10px] text-foreground font-semibold mt-1">Preventivo</p>
-            </Link>
-            {quickLinks.slice(1).map((l) => (
-              <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
-                <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
-                <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
-                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
-                  <Lock className="w-2.5 h-2.5 text-background" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {userState?.first_colloquio_done && !userState?.percorso_active && (
+        <StateDopoColloquio
+          level={userState.percorso_level}
+          duration={userState.percorso_duration}
+          percorsoType={userState.percorso_type}
+          stripeUrl={stripePercorso}
+        />
       )}
-
-      {state === 3 && (
-        <div className="glass-card rounded-2xl p-4 border border-primary/30 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wider">Percorso attivo</span>
-            <span className="text-[10px] text-muted-foreground">Stato 3 di 3</span>
-          </div>
-          <div className="flex items-center gap-3 pb-3 border-b border-border/30">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500/30 to-red-600/20 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">Cammino di libertà</p>
-              <p className="text-[10px] text-muted-foreground">Il tuo percorso è attivo</p>
-            </div>
-            <div className="flex flex-col items-center px-2.5 py-1 rounded-xl bg-primary/10">
-              <div className="flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5 text-primary" />
-                <span className="text-base font-bold text-primary leading-none">{cleanDays}</span>
-              </div>
-              <span className="text-[9px] text-primary/70 font-medium">giorni</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            {quickLinks.map((link) => (
-              <Link key={link.label} to={link.to}
-                className="glass-card rounded-xl p-2.5 text-center space-y-1 hover:border-primary/30 transition-colors">
-                <link.icon className="w-4 h-4 text-primary mx-auto" />
-                <p className="text-[10px] text-muted-foreground font-medium">{link.label}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
+      {userState?.percorso_active && (
+        <StatePercorsoAttivo cleanDays={cleanDays} />
       )}
-
-      {/* CTA rosso sempre visibile */}
-      <Link to="/percorsi" className="block">
-        <Button variant="cta" size="lg" className="w-full">
-          Prenota il primo colloquio
-          <ArrowRight className="w-4 h-4 ml-1" />
-        </Button>
-      </Link>
     </section>
   );
 };
 
 const Home = () => {
   usePageTracking("home");
+  const config = useAppConfig();
   const [cleanDate] = useState<Date | undefined>(() => {
     const s = localStorage.getItem("standup_clean_date");
     return s ? new Date(s) : undefined;
@@ -167,7 +227,7 @@ const Home = () => {
 
   const cleanDays = cleanDate
     ? Math.max(0, Math.floor((Date.now() - cleanDate.getTime()) / (1000 * 60 * 60 * 24)))
-    : 12;
+    : 0;
 
   return (
     <div className="min-h-screen bg-surface-0 pb-24">
@@ -184,35 +244,38 @@ const Home = () => {
       </header>
 
       <div className="px-4 py-5 space-y-6">
-        {/* === IL MIO PERCORSO — Showcase compatto 3 stati === */}
-        <PercorsoShowcase cleanDays={cleanDays} />
+        {/* === IL MIO PERCORSO ═══ */}
+        <PercorsoShowcase cleanDays={cleanDays} config={config} />
 
-        {/* Due video affiancati: 1 → 2 */}
-        <section className="space-y-2">
-          <div className="flex items-center gap-2 px-1">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Guarda in ordine</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { n: 1, title: "Cos'è StandUpWay" },
-              { n: 2, title: "Come iniziare un percorso" },
-            ].map((v) => (
-              <div key={v.n} className="rounded-xl overflow-hidden border border-border/40 bg-surface-1">
-                <div className="relative aspect-video bg-secondary/40 flex items-center justify-center">
-                  <iframe title={v.title} src="about:blank" className="absolute inset-0 w-full h-full" allowFullScreen />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-secondary/40 pointer-events-none">
-                    <PlayCircle className="w-7 h-7 mb-1" />
-                    <span className="text-[9px] font-bold">VIDEO {v.n}</span>
+        {/* Due video affiancati ════ */}
+        {(config['home_video_1_url'] || config['home_video_2_url']) && (
+          <section className="space-y-2">
+            <div className="flex items-center gap-2 px-1">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Guarda in ordine</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { key: 'home_video_1', n: 1 },
+                { key: 'home_video_2', n: 2 },
+              ].map(({ key, n }) => {
+                const url = config[`${key}_url`];
+                const title = config[`${key}_title`] || `Video ${n}`;
+                if (!url) return null;
+                return (
+                  <div key={n} className="rounded-xl overflow-hidden border border-border/40 bg-surface-1">
+                    <div className="relative aspect-video bg-secondary/40">
+                      <iframe title={title} src={url} className="absolute inset-0 w-full h-full" allowFullScreen />
+                    </div>
+                    <div className="px-2 py-2">
+                      <p className="text-[11px] font-semibold text-foreground leading-tight">{title}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="px-2 py-2">
-                  <p className="text-[11px] font-semibold text-foreground leading-tight">{v.title}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* === Step di rinascita === */}
         <section className="space-y-3">

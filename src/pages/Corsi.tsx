@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { trackEvent } from "@/lib/analytics";
+import { useCourses, type Corso } from "@/hooks/useCourses";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import { BackButton } from "@/components/BackButton";
@@ -33,16 +34,20 @@ const corsoLezioni = [
 
 const Corsi = () => {
   usePageTracking("corsi");
+  const { courses: corsiOnDemand } = useCourses();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedCorso, setSelectedCorso] = useState<typeof corsiOnDemand[0] | null>(null);
+  const [selectedCorso, setSelectedCorso] = useState<Corso | null>(null);
   const [showPurchase, setShowPurchase] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"carta" | "bonifico" | null>(null);
 
-  const handleCorsoClick = (corso: typeof corsiOnDemand[0]) => {
+  const handleCorsoClick = (corso: Corso) => {
     if (corso.free) {
       navigate(`/corso/${corso.id}`);
+    } else if (corso.stripe_url) {
+      trackEvent("corso_purchase_intent", "corsi", { id: corso.id, title: corso.title });
+      window.open(corso.stripe_url, '_blank');
     } else {
       setSelectedCorso(corso);
       setShowPurchase(true);
@@ -88,7 +93,7 @@ const Corsi = () => {
               className="glass-card rounded-xl overflow-hidden text-left w-full"
             >
               <div className="relative h-28">
-                <img src={corso.image} alt={corso.title} className="w-full h-full object-cover" />
+                <img src={corso.image_url} alt={corso.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
                 <div className="absolute bottom-2 left-3 right-3">
                   <h3 className="font-semibold text-foreground text-sm">{corso.title}</h3>
@@ -131,7 +136,7 @@ const Corsi = () => {
                 <DialogDescription>{selectedCorso.description}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <img src={selectedCorso.image} alt={selectedCorso.title} className="w-full h-36 object-cover rounded-xl" />
+                <img src={selectedCorso.image_url} alt={selectedCorso.title} className="w-full h-36 object-cover rounded-xl" />
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{selectedCorso.duration}</span>
