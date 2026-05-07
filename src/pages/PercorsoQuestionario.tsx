@@ -235,22 +235,8 @@ const PercorsoQuestionario = () => {
   useEffect(() => {
     if (phase === "questions" && i >= steps.length) {
       setPhase("result");
-      const level = score >= 12 ? "alto" : score >= 6 ? "medio" : "basso";
-      trackFunnel(id || "questionario", "complete", { score, level, percorso: id, time_s: Math.round((Date.now() - startRef.current) / 1000) });
-      // Salva risultato su Supabase
-      const maxScore = steps.filter(s => s.kind === "question").length * 3;
-      supabase.from("questionnaire_responses").insert({
-        user_id: localStorage.getItem("sw_user_id"),
-        addiction_type: id,
-        score,
-        max_score: maxScore,
-        result_level: level,
-      }).then(({ error }) => {
-        if (error) console.error("[SW] questionnaire insert error:", error);
-        else console.log("[SW] questionnaire saved ok");
-      });
     }
-  }, [phase, i, steps.length, score, id]);
+  }, [phase, i, steps.length]);
 
   const step = steps[i];
 
@@ -356,9 +342,27 @@ const PercorsoQuestionario = () => {
   }
 
   const next = (weight = 0) => {
-    trackFunnel(id || "questionario", `step_${i}`, { weight, score: score + weight, percorso: id });
-    setScore((s) => s + weight);
-    setI((n) => n + 1);
+    const newScore = score + weight;
+    const newI = i + 1;
+    trackFunnel(id || "questionario", `step_${i}`, { weight, score: newScore, percorso: id });
+    setScore(newScore);
+    setI(newI);
+
+    if (newI >= steps.length) {
+      const level = newScore >= 12 ? "alto" : newScore >= 6 ? "medio" : "basso";
+      trackFunnel(id || "questionario", "complete", { score: newScore, level, percorso: id, time_s: Math.round((Date.now() - startRef.current) / 1000) });
+      const maxScore = steps.filter(s => s.kind === "question").length * 3;
+      supabase.from("questionnaire_responses").insert({
+        user_id: localStorage.getItem("sw_user_id"),
+        addiction_type: id,
+        score: newScore,
+        max_score: maxScore,
+        result_level: level,
+      }).then(({ error }) => {
+        if (error) console.error("[SW] questionnaire insert error:", error);
+        else console.log("[SW] questionnaire saved ok");
+      });
+    }
   };
 
   if (!step) return null;
