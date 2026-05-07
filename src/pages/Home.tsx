@@ -259,13 +259,26 @@ const Home = () => {
                 { key: 'home_video_1', n: 1 },
                 { key: 'home_video_2', n: 2 },
               ].map(({ key, n }) => {
-                const url = config[`${key}_url`];
+                const raw = config[`${key}_url`];
                 const title = config[`${key}_title`] || `Video ${n}`;
-                if (!url) return null;
+                if (!raw) return null;
+                // Normalize Vimeo and YouTube watch URLs to embed URLs
+                let url = raw;
+                const vimeoMatch = raw.match(/vimeo\.com\/(\d+)/);
+                const ytMatch = raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
+                if (vimeoMatch) url = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+                else if (ytMatch) url = `https://www.youtube.com/embed/${ytMatch[1]}`;
                 return (
                   <div key={n} className="rounded-xl overflow-hidden border border-border/40 bg-surface-1">
                     <div className="relative aspect-video bg-secondary/40">
-                      <iframe title={title} src={url} className="absolute inset-0 w-full h-full" allowFullScreen />
+                      <iframe
+                        title={title}
+                        src={url}
+                        className="absolute inset-0 w-full h-full"
+                        frameBorder="0"
+                        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                        allowFullScreen
+                      />
                     </div>
                     <div className="px-2 py-2">
                       <p className="text-[11px] font-semibold text-foreground leading-tight">{title}</p>
