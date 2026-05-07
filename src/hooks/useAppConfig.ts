@@ -3,13 +3,10 @@ import { supabase } from '@/lib/supabase'
 
 type Config = Record<string, string>
 
-let cache: Config | null = null
-
 export function useAppConfig() {
-  const [config, setConfig] = useState<Config>(cache ?? {})
+  const [config, setConfig] = useState<Config>({})
 
   useEffect(() => {
-    if (cache) return
     supabase
       .from('app_config')
       .select('key,value')
@@ -17,7 +14,6 @@ export function useAppConfig() {
         if (data) {
           const map: Config = {}
           data.forEach(({ key, value }) => { if (value) map[key] = value })
-          cache = map
           setConfig(map)
         }
       })
