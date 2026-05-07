@@ -24,6 +24,7 @@ import AttivitaDetail from "./pages/AttivitaDetail";
 import CorsoDetail from "./pages/CorsoDetail";
 import Supporto from "./pages/Supporto";
 import Prenota from "./pages/Prenota";
+import Thankyou from "./pages/Thankyou";
 import Servizi from "./pages/Servizi";
 import Strumenti from "./pages/Strumenti";
 import Autovalutazione from "./pages/Autovalutazione";
@@ -69,6 +70,7 @@ const App = () => (
           <Route path="/corso/:id" element={<CorsoDetail />} />
           <Route path="/supporto" element={<Supporto />} />
           <Route path="/prenota" element={<Prenota />} />
+          <Route path="/thankyou" element={<Thankyou />} />
           <Route path="/servizi" element={<Servizi />} />
           <Route path="/strumenti" element={<Strumenti />} />
           <Route path="/autovalutazione" element={<Autovalutazione />} />
