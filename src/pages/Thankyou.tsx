@@ -12,14 +12,33 @@ const Thankyou = () => {
   useEffect(() => {
     localStorage.setItem("sw_first_colloquio_done", "true");
     setUnlocked(true);
+
+    // ID univoco per deduplicare pixel + CAPI
+    const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+    // Pixel browser
     if (typeof window.fbq === "function") {
       window.fbq("track", "Purchase", {
         value: 49,
         currency: "EUR",
         content_name: "Colloquio 30min",
         content_type: "product",
-      });
+      }, { eventID: eventId });
     }
+
+    // CAPI server-side
+    const email = sessionStorage.getItem("sw_verify_email") || "";
+    supabase.functions.invoke("meta-capi", {
+      body: {
+        event_name: "Purchase",
+        event_id: eventId,
+        email,
+        value: 49,
+        currency: "EUR",
+        event_source_url: window.location.href,
+        client_user_agent: navigator.userAgent,
+      },
+    });
 
     const userId = localStorage.getItem("sw_user_id");
     if (!userId) return;
