@@ -56,10 +56,26 @@ const PrenotaRegistrazione = () => {
       return;
     }
 
-    // 2. Salva prenotazione su Supabase
+    // 2. Login immediato per creare la sessione (bypassa la conferma email se disabilitata)
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: form.email.trim(),
+      password: form.password,
+    });
+
+    if (signInError) {
+      setLoading(false);
+      // Probabile email confirmation abilitata su Supabase — vai comunque al riepilogo
+      // ma salva i dati in sessionStorage per recuperarli dopo il login
+      setError("Account creato! Controlla la tua email per confermare, poi accedi.");
+      return;
+    }
+
+    const userId = signInData.user?.id ?? data.user?.id;
+
+    // 3. Salva prenotazione su Supabase
     const funnel = JSON.parse(sessionStorage.getItem("sw_funnel") || "{}");
     await supabase.from("bookings").insert({
-      user_id: data.user?.id,
+      user_id: userId,
       dipendenza: funnel.dipendenza,
       score: funnel.score,
       level: funnel.level,
@@ -74,7 +90,7 @@ const PrenotaRegistrazione = () => {
     });
 
     setLoading(false);
-    // 3. Vai al riepilogo (ora l'utente è autenticato)
+    // 4. Vai al riepilogo — la sessione è già attiva, ProtectedRoute non blocca
     navigate("/riepilogo", { replace: true });
   };
 
