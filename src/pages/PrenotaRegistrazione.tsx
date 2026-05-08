@@ -48,15 +48,16 @@ const PrenotaRegistrazione = () => {
 
     if (signUpError) {
       setLoading(false);
-      if (signUpError.message.includes("already registered")) {
-        setError("Questa email è già registrata. Accedi dalla pagina di login.");
+      const msg = signUpError.message.toLowerCase();
+      if (msg.includes("already") || msg.includes("registered") || msg.includes("taken")) {
+        setError("Questa email è già registrata. Usa il link \"Accedi\" qui sotto.");
       } else {
-        setError("Errore durante la registrazione. Riprova tra qualche secondo.");
+        setError(`Errore: ${signUpError.message}`);
       }
       return;
     }
 
-    // 2. Login immediato per creare la sessione (bypassa la conferma email se disabilitata)
+    // 2. Login immediato per creare la sessione
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email: form.email.trim(),
       password: form.password,
@@ -64,9 +65,7 @@ const PrenotaRegistrazione = () => {
 
     if (signInError) {
       setLoading(false);
-      // Probabile email confirmation abilitata su Supabase — vai comunque al riepilogo
-      // ma salva i dati in sessionStorage per recuperarli dopo il login
-      setError("Account creato! Controlla la tua email per confermare, poi accedi.");
+      setError(`Errore login: ${signInError.message}`);
       return;
     }
 
@@ -89,7 +88,7 @@ const PrenotaRegistrazione = () => {
       status: "pending",
     });
 
-    // 4. Invia OTP per verifica email in-app
+    // 4. Invia OTP per verifica email
     await supabase.auth.signInWithOtp({
       email: form.email.trim(),
       options: { shouldCreateUser: false },
@@ -97,8 +96,8 @@ const PrenotaRegistrazione = () => {
     sessionStorage.setItem("sw_verify_email", form.email.trim());
 
     setLoading(false);
-    // 5. Vai al riepilogo — la sessione è già attiva, ProtectedRoute non blocca
-    navigate("/riepilogo", { replace: true });
+    // 5. Vai alla pagina di verifica email
+    navigate("/prenota/verifica", { replace: true });
   };
 
   const inputClass = "w-full bg-surface-0 border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition";

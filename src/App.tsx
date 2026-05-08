@@ -13,6 +13,7 @@ import PercorsoDetail from "./pages/PercorsoDetail";
 import PercorsoQuestionario from "./pages/PercorsoQuestionario";
 import PrenotaCalendario from "./pages/PrenotaCalendario";
 import PrenotaRegistrazione from "./pages/PrenotaRegistrazione";
+import PrenotaVerifica from "./pages/PrenotaVerifica";
 import Installa from "./pages/Installa";
 import Invita from "./pages/Invita";
 import NotFound from "./pages/NotFound";
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/percorsi/:id/questionario" element={<PercorsoQuestionario />} />
             <Route path="/prenota/calendario" element={<PrenotaCalendario />} />
             <Route path="/prenota/registrazione" element={<PrenotaRegistrazione />} />
+            <Route path="/prenota/verifica" element={<PrenotaVerifica />} />
             <Route path="/installa" element={<Installa />} />
             <Route path="/invita" element={<Invita />} />
 
