@@ -157,16 +157,26 @@ const PrenotaCalendario = () => {
 
       {/* CTA fissa in basso */}
       <div className="sticky bottom-0 bg-surface-1/95 backdrop-blur border-t border-border/40 px-4 py-4 safe-area-bottom">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg mx-auto space-y-2">
+          {!selectedDay && (
+            <p className="text-center text-xs text-amber-500 font-medium">
+              👆 Seleziona prima un giorno
+            </p>
+          )}
+          {selectedDay && !selectedSlot && (
+            <p className="text-center text-xs text-amber-500 font-medium">
+              👆 Ora scegli un orario disponibile
+            </p>
+          )}
           <Button
             onClick={handleConfirm}
             disabled={!selectedDay || !selectedSlot}
-            className="w-full h-13 text-base font-semibold"
+            className="w-full text-base font-semibold"
             size="lg"
           >
             Conferma orario <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
-          <p className="text-center text-[10px] text-muted-foreground mt-2">
+          <p className="text-center text-[10px] text-muted-foreground">
             Potrai modificare o cancellare gratuitamente fino a 24h prima
           </p>
         </div>

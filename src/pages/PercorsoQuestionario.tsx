@@ -220,6 +220,8 @@ const PercorsoQuestionario = () => {
   const progress = Math.round(((i + (isEnd ? 0 : 1)) / (steps.length + 1)) * 100);
   const startRef = useRef(Date.now());
 
+  const { user } = useAuth();
+
   useEffect(() => {
     trackFunnel(id || "questionario", "start", { percorso: id });
     const onUnload = () => {
@@ -232,16 +234,14 @@ const PercorsoQuestionario = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Quando finiscono le domande, vai direttamente al risultato
+  // Quando finiscono le domande: risultato per utenti loggati, calendario per anonimi
   useEffect(() => {
-    if (phase === "questions" && i >= steps.length) {
+    if (phase === "questions" && i >= steps.length && user) {
       setPhase("result");
     }
-  }, [phase, i, steps.length]);
+  }, [phase, i, steps.length, user]);
 
   const step = steps[i];
-
-  const { user } = useAuth();
 
   if (isEnd) {
     const level = score >= 12 ? "alto" : score >= 6 ? "medio" : "basso";
@@ -368,6 +368,13 @@ const PercorsoQuestionario = () => {
         if (error) console.error("[SW] questionnaire insert error:", error);
         else console.log("[SW] questionnaire saved ok");
       });
+
+      // Utente non loggato: salta la pagina risultato, vai diretto al calendario
+      if (!user) {
+        sessionStorage.setItem("sw_funnel", JSON.stringify({ dipendenza: id, score: newScore, level }));
+        navigate("/prenota/calendario");
+        return;
+      }
     }
   };
 
