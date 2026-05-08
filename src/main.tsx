@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-const APP_CACHE_VERSION = "standupway-cache-reset-2026-05-08-v3";
+const APP_CACHE_VERSION = "standupway-cache-reset-2026-05-08-v4";
 
 const resetStalePreviewCache = async () => {
   if (!("serviceWorker" in navigator)) return;
