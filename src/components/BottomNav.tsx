@@ -9,7 +9,7 @@ export const BottomNav = () => {
     { label: "Home", href: "/home", icon: Home, match: ["/home", "/"] },
     { label: "Percorsi", href: "/percorsi", icon: Route, match: ["/percorsi", "/percorso"] },
     { label: "Supporto", href: "/supporto", icon: Headphones, isCenter: true, match: ["/supporto"] },
-    { label: "Corsi", href: "/attivita", icon: BookOpen, match: ["/attivita", "/corsi", "/eventi", "/insede"] },
+    { label: "Corsi", href: "/corsi", icon: BookOpen, match: ["/corsi", "/corso"] },
     { label: "Community", href: "/community", icon: Users, match: ["/community"] },
   ];
 
