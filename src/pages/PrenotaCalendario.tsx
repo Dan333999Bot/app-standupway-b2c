@@ -77,7 +77,7 @@ const PrenotaCalendario = () => {
         </div>
       </header>
 
-      <div className="flex-1 px-4 py-6 max-w-lg mx-auto w-full space-y-6">
+      <div className="flex-1 px-4 py-6 pb-32 max-w-lg mx-auto w-full space-y-6">
 
         {/* Selezione giorno */}
         <div>
@@ -156,7 +156,7 @@ const PrenotaCalendario = () => {
       </div>
 
       {/* CTA fissa in basso */}
-      <div className="sticky bottom-0 bg-surface-1/95 backdrop-blur border-t border-border/40 px-4 py-4 safe-area-bottom">
+      <div className="fixed bottom-0 left-0 right-0 bg-surface-1/95 backdrop-blur border-t border-border/40 px-4 py-4 safe-area-bottom z-20">
         <div className="max-w-lg mx-auto space-y-2">
           {!selectedDay && (
             <p className="text-center text-xs text-amber-500 font-medium">
