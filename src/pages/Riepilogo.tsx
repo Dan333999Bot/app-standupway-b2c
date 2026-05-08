@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarCheck, Clock, Home, CreditCard, CheckCircle2, ShieldCheck } from "lucide-react";
+import { CalendarCheck, Clock, Home, CreditCard, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,6 +33,8 @@ const Riepilogo = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [funnel, setFunnel] = useState<FunnelData>({});
+  const [loadingPayment, setLoadingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   useEffect(() => {
     const data = JSON.parse(sessionStorage.getItem("sw_funnel") || "{}");
@@ -43,11 +45,30 @@ const Riepilogo = () => {
   const levelConfig = LEVEL_CONFIG[level];
   const nomeUtente = user?.user_metadata?.nome ?? funnel.nome ?? "Utente";
 
-  // Placeholder Stripe — verrà sostituito con la vera Checkout Session
-  const handlePagamento = () => {
-    // TODO: navigate to Stripe Checkout
-    // window.location.href = stripeCheckoutUrl;
-    alert("Integrazione Stripe in arrivo — qui l'utente verrà reindirizzato al pagamento.");
+  const handlePagamento = async () => {
+    setLoadingPayment(true);
+    setPaymentError(null);
+    try {
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user?.email,
+          userId: user?.id,
+          dipendenza: funnel.dipendenza,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setPaymentError("Errore nell'avviare il pagamento. Riprova.");
+        setLoadingPayment(false);
+      }
+    } catch {
+      setPaymentError("Errore di connessione. Riprova tra qualche secondo.");
+      setLoadingPayment(false);
+    }
   };
 
   return (
@@ -154,8 +175,16 @@ const Riepilogo = () => {
       {/* CTA fissa in basso */}
       <div className="sticky bottom-0 bg-surface-1/95 backdrop-blur border-t border-border/40 px-4 py-4 safe-area-bottom space-y-2">
         <div className="max-w-lg mx-auto space-y-2">
-          <Button onClick={handlePagamento} className="w-full" size="lg">
-            <CreditCard className="w-4 h-4 mr-2" /> Vai al pagamento · 49€
+          {paymentError && (
+            <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5 text-center">
+              {paymentError}
+            </p>
+          )}
+          <Button onClick={handlePagamento} disabled={loadingPayment} className="w-full" size="lg">
+            {loadingPayment
+              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Caricamento…</>
+              : <><CreditCard className="w-4 h-4 mr-2" /> Vai al pagamento · 49€</>
+            }
           </Button>
           <Button variant="ghost" onClick={() => navigate("/home")} className="w-full text-muted-foreground">
             <Home className="w-4 h-4 mr-1.5" /> Torna alla home
