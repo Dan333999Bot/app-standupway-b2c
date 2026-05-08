@@ -106,7 +106,7 @@ const PrenotaCalendario = () => {
               "Ho letto le tue risposte. Quello che stai attraversando è reale — e il fatto che tu sia qui dice già molto."
             </p>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              30 minuti, online, senza impegno. Solo noi due — per capire insieme da dove partire.
+              Uno dei nostri professionisti StandUp Way ti aspetta: 30 minuti, online, senza impegno.
             </p>
             <div className="flex items-center gap-1.5 pt-0.5">
               <Video className="w-3 h-3 text-primary flex-shrink-0" />
