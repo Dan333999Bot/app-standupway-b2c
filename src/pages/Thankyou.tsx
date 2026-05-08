@@ -38,6 +38,9 @@ const Thankyou = () => {
         event_source_url: window.location.href,
         client_user_agent: navigator.userAgent,
       },
+    }).then(({ data, error }) => {
+      if (error) console.error("[CAPI] error:", error);
+      else console.log("[CAPI] ok:", JSON.stringify(data));
     });
 
     const userId = localStorage.getItem("sw_user_id");
