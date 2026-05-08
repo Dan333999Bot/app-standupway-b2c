@@ -8,7 +8,7 @@ const PrenotaVerifica = () => {
   const navigate = useNavigate();
   const email = sessionStorage.getItem("sw_verify_email") || "";
 
-  const [digits, setDigits] = useState(["", "", "", "", "", ""]);
+  const [digits, setDigits] = useState(["", "", "", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(true); // OTP in invio al mount
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ const PrenotaVerifica = () => {
     next[idx] = val;
     setDigits(next);
     setError(null);
-    if (val && idx < 5) inputRefs.current[idx + 1]?.focus();
+    if (val && idx < 7) inputRefs.current[idx + 1]?.focus();
   };
 
   const handleKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -43,23 +43,23 @@ const PrenotaVerifica = () => {
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (paste.length === 6) {
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8);
+    if (paste.length === 8) {
       setDigits(paste.split(""));
-      setTimeout(() => inputRefs.current[5]?.focus(), 0);
+      setTimeout(() => inputRefs.current[7]?.focus(), 0);
     }
   };
 
   const handleVerify = async () => {
     const token = digits.join("");
-    if (token.length < 6) return;
+    if (token.length < 8) return;
     setLoading(true);
     setError(null);
     const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     setLoading(false);
     if (error) {
       setError("Codice non valido o scaduto. Riprova o clicca su \"Invia di nuovo\".");
-      setDigits(["", "", "", "", "", ""]);
+      setDigits(["", "", "", "", "", "", "", ""]);
       setTimeout(() => inputRefs.current[0]?.focus(), 0);
     } else {
       sessionStorage.removeItem("sw_verify_email");
@@ -73,7 +73,7 @@ const PrenotaVerifica = () => {
     await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
     setResending(false);
     setResent(true);
-    setDigits(["", "", "", "", "", ""]);
+    setDigits(["", "", "", "", "", "", "", ""]);
     setTimeout(() => {
       setResent(false);
       inputRefs.current[0]?.focus();
@@ -143,7 +143,7 @@ const PrenotaVerifica = () => {
             {/* Bottone */}
             <Button
               onClick={handleVerify}
-              disabled={digits.join("").length < 6 || loading}
+              disabled={digits.join("").length < 8 || loading}
               className="w-full"
               size="lg"
             >
