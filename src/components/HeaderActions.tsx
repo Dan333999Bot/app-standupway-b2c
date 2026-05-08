@@ -1,16 +1,28 @@
 import { Menu, X, User, Route, CreditCard, Tag, KeyRound, LogOut, Sun, Moon, Bell, FileText, Gift } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 const MenuDropdown = ({ onClose }: { onClose: () => void }) => {
   const [isDark, setIsDark] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     setIsDark(savedTheme === "dark");
   }, []);
+
+  const handleSignOut = async () => {
+    onClose();
+    await signOut();
+    navigate("/login", { replace: true });
+  };
+
+  const nomeCompleto = [user?.user_metadata?.nome, user?.user_metadata?.cognome].filter(Boolean).join(" ") || "Profilo";
+  const email = user?.email || "";
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
@@ -37,8 +49,8 @@ const MenuDropdown = ({ onClose }: { onClose: () => void }) => {
               <User className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Mario Rossi</p>
-              <p className="text-xs text-muted-foreground">mario.rossi@email.com</p>
+              <p className="font-semibold text-foreground">{nomeCompleto}</p>
+              <p className="text-xs text-muted-foreground">{email}</p>
             </div>
           </div>
         </Link>
@@ -83,7 +95,7 @@ const MenuDropdown = ({ onClose }: { onClose: () => void }) => {
           
           <div className="border-t border-border my-1" />
           
-          <button onClick={onClose} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-primary hover:bg-secondary transition-colors">
+          <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-primary hover:bg-secondary transition-colors">
             <LogOut className="w-4 h-4" /> Esci
           </button>
         </nav>
