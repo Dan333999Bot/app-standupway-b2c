@@ -33,13 +33,20 @@ const PrenotaCalendario = () => {
 
   const handleConfirm = () => {
     if (!selectedDay || !selectedSlot) return;
-    // Aggiunge data/ora ai dati funnel già in sessionStorage
     const existing = JSON.parse(sessionStorage.getItem("sw_funnel") || "{}");
     sessionStorage.setItem("sw_funnel", JSON.stringify({
       ...existing,
       data: fmtFull(selectedDay),
       ora: selectedSlot,
     }));
+    if (typeof window.fbq === "function") {
+      window.fbq("track", "InitiateCheckout", {
+        value: 49,
+        currency: "EUR",
+        content_name: "Colloquio 30min",
+        num_items: 1,
+      });
+    }
     navigate("/prenota/registrazione");
   };
 

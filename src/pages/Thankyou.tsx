@@ -10,9 +10,16 @@ const Thankyou = () => {
   const [unlocked, setUnlocked] = useState(false);
 
   useEffect(() => {
-    // Fallback immediato via localStorage (funziona anche se Supabase è lento/bloccato)
     localStorage.setItem("sw_first_colloquio_done", "true");
     setUnlocked(true);
+    if (typeof window.fbq === "function") {
+      window.fbq("track", "Purchase", {
+        value: 49,
+        currency: "EUR",
+        content_name: "Colloquio 30min",
+        content_type: "product",
+      });
+    }
 
     const userId = localStorage.getItem("sw_user_id");
     if (!userId) return;
