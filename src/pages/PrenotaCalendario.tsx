@@ -79,40 +79,38 @@ const PrenotaCalendario = () => {
 
       <div className="flex-1 px-4 py-6 pb-32 max-w-lg mx-auto w-full space-y-6">
 
-        {/* Intro con volto di Agnese */}
+        {/* Intro Agnese */}
         <div className="rounded-2xl overflow-hidden border border-border/40 bg-surface-1">
-          {/* Foto */}
-          <div className="relative h-52 bg-gradient-to-br from-zinc-900 to-zinc-800 overflow-hidden">
+          {/* Foto con nome sovrapposto */}
+          <div className="relative h-60 overflow-hidden">
             <img
               src="/agnese.jpg"
-              alt="Agnese — Psicologa StandUp Way"
-              className="w-full h-full object-cover object-top"
+              alt="Agnese"
+              className="w-full h-full object-cover object-center"
+              style={{ filter: "brightness(0.92) contrast(1.05)" }}
             />
-            {/* Gradient bottom overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            {/* Nome sovrapposto */}
-            <div className="absolute bottom-3 left-4">
-              <p className="text-white font-bold text-base leading-tight">Agnese</p>
-              <p className="text-white/70 text-xs">Psicologa clinica · StandUp Way</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+            <div className="absolute bottom-4 left-4">
+              <p className="text-white font-bold text-base leading-snug">Agnese</p>
+              <p className="text-white/70 text-[11px]">Psicologa clinica · StandUp Way</p>
             </div>
-            {/* Badge segreto professionale */}
-            <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
+            <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/45 backdrop-blur-sm rounded-full px-2.5 py-1">
               <ShieldCheck className="w-3 h-3 text-green-400" />
-              <span className="text-[10px] text-white font-medium">Segreto professionale</span>
+              <span className="text-[10px] text-white font-medium">Riservatezza garantita</span>
             </div>
           </div>
 
-          {/* Messaggio */}
-          <div className="p-4 space-y-3">
+          {/* Parole di Agnese */}
+          <div className="px-4 py-4 space-y-2">
             <p className="text-sm text-foreground leading-relaxed">
-              "Ho letto le tue risposte. Quello che stai attraversando è reale, e il fatto che tu sia arrivato/a fin qui dice già molto di te."
+              "Ho letto le tue risposte. Quello che stai attraversando è reale — e il fatto che tu sia qui dice già molto."
             </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Lavoro con persone in situazioni come la tua ogni giorno. Il primo colloquio — 30 minuti, online, in totale riservatezza — è solo per conoscerci e capire insieme da dove partire. Nessun impegno, nessun giudizio.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              30 minuti, online, senza impegno. Solo noi due — per capire insieme da dove partire.
             </p>
-            <div className="flex items-center gap-2 pt-1">
-              <Video className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-              <p className="text-xs text-muted-foreground">Online via video call · 49€ · Rimborso garantito entro 24h</p>
+            <div className="flex items-center gap-1.5 pt-0.5">
+              <Video className="w-3 h-3 text-primary flex-shrink-0" />
+              <p className="text-[11px] text-muted-foreground">Video call · 49€ · Cancellazione gratuita fino a 24h prima</p>
             </div>
           </div>
         </div>
