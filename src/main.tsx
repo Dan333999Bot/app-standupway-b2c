@@ -2,10 +2,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-const APP_CACHE_VERSION = "standupway-cache-reset-2026-05-06";
+const APP_CACHE_VERSION = "standupway-cache-reset-2026-05-08-v3";
 
 const resetStalePreviewCache = async () => {
-  if (!("serviceWorker" in navigator) || !window.location.hostname.includes("lovable")) return;
+  if (!("serviceWorker" in navigator)) return;
 
   const resetKey = `${APP_CACHE_VERSION}:${window.location.pathname}`;
   if (sessionStorage.getItem(resetKey)) return;
