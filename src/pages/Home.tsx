@@ -64,7 +64,7 @@ const StateSenzaPercorso = ({ stripeUrl }: { stripeUrl?: string }) => (
     </div>
     <Link to="/percorsi" className="block">
       <Button variant="cta" size="lg" className="w-full">
-        Prenota il primo colloquio <ArrowRight className="w-4 h-4 ml-1" />
+        Prenota un colloquio <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
     </Link>
   </div>
@@ -115,7 +115,7 @@ const StateDopoColloquio = ({
       </div>
       <Link to="/percorsi" className="block">
         <Button variant="cta" size="lg" className="w-full">
-          Prenota il primo colloquio <ArrowRight className="w-4 h-4 ml-1" />
+          Prenota un colloquio <ArrowRight className="w-4 h-4 ml-1" />
         </Button>
       </Link>
     </div>
