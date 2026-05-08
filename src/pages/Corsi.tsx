@@ -142,7 +142,7 @@ const Corsi = () => {
           <BackButton />
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground">Corsi</h1>
-            <p className="text-sm text-muted-foreground mt-1">Corsi online da seguire al tuo ritmo</p>
+            <p className="text-sm text-muted-foreground mt-1">Corsi online da seguire al tuo ritmo — v2</p>
           </div>
           <HeaderActions />
         </div>
