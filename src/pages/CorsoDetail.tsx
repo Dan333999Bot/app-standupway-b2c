@@ -37,7 +37,7 @@ const CorsoDetail = () => {
     <div className="min-h-screen bg-background pb-24">
       <header className="glass border-b border-border/50 px-4 py-4 safe-area-top">
         <div className="flex items-center gap-3">
-          <Link to="/attivita" className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors">
+          <Link to="/corsi" className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </Link>
           <h1 className="text-lg font-bold text-foreground truncate">{corso.title}</h1>
