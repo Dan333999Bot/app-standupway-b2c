@@ -115,6 +115,145 @@ const communities: Community[] = [
         { id: 5003, author: "Sara L.", avatar: "S", content: "Assolutamente sì! Noi siamo qui con te ❤️", time: "11 ore fa", likes: 15, liked: false },
         { id: 5004, author: "Luca P.", avatar: "L", content: "Benvenuto Alessandro! Il primo passo è il più coraggioso", time: "10 ore fa", likes: 11, liked: false },
       ]},
+
+      { id: 200, author: "Marco T.", avatar: "M", time: "2 ore fa", content: "3 mesi fa pensavo di non farcela. oggi mi sono alzato, ho fatto colazione, sono andato a lavoro e non ci ho nemmeno pensato. roba che sembra banale ma per me è tipo vincere le olimpiadi 😅", likes: 89, liked: false, comments: [
+        { id: 6000, author: "Federica N.", avatar: "F", content: "fratm questo non è banale per niente. questo è tutto. bravissimo 🙌", time: "1 ora fa", likes: 14, liked: false },
+        { id: 6001, author: "Davide C.", avatar: "D", content: "capisco alla follia quello che dici. ci sono passato pure io. vai avanti così!", time: "50 min fa", likes: 9, liked: false },
+        { id: 6002, author: "Rosa P.", avatar: "R", content: "leggere questo mi dà forza anche a me che sono all'inizio. grazie per aver condiviso 💪", time: "30 min fa", likes: 7, liked: false },
+      ]},
+
+      { id: 201, author: "Valentina S.", avatar: "V", time: "3 ore fa", content: "ho paura. paura che quando staró davvero male tornerò a farlo. non so se ce la faccio a lungo andare. qualcuno l'ha sentita questa cosa?", likes: 61, liked: false, comments: [] },
+
+      { id: 202, author: "Riccardo B.", avatar: "R", time: "4 ore fa", content: "onestamente? quando ho sentito parlare di standup way la prima volta ho pensato fosse l'ennesima cosa di marketing. coach, percorsi, app... boh. poi ci ho provato perché ero a pezzi e non avevo alternative. e adesso sono qui a scrivere questo. vabbè 🤷", likes: 112, liked: false, comments: [
+        { id: 6003, author: "Simone A.", avatar: "S", content: "uguale uguale la mia storia. zero credibilità all'inizio poi mi ha cambiato la vita. benvenuto nel club degli scettici convertiti ahah", time: "3 ore fa", likes: 21, liked: false },
+        { id: 6004, author: "Carmen L.", avatar: "C", content: "io ero ancora più cinica di te e guarda qua, 5 mesi dopo scrivo anche io in questa community 😂", time: "2 ore fa", likes: 16, liked: false },
+      ]},
+
+      { id: 203, author: "Gianluca F.", avatar: "G", time: "5 ore fa", content: "ho detto a mia madre che sto facendo un percorso. non l'avevo mai detto a nessuno prima. tremavo mentre glielo dicevo. lei ha pianto. io ho pianto. ma è andata.", likes: 94, liked: false, comments: [] },
+
+      { id: 204, author: "Alessia M.", avatar: "A", time: "6 ore fa", content: "voglio farcela. lo so che sembra scontato dirlo qui ma è l'unica cosa che sento vera in questo momento. voglio farcela e basta. non so come, non so quando, ma voglio farcela.", likes: 78, liked: false, comments: [
+        { id: 6005, author: "Marco T.", avatar: "M", content: "questa frase l'ho pensata anche io. e poi pian piano il come arriva. tienila stretta quella voglia.", time: "5 ore fa", likes: 18, liked: false },
+        { id: 6006, author: "Nadia B.", avatar: "N", content: "questo è il punto di partenza giusto. il resto viene dopo. sei già avanti 💙", time: "4 ore fa", likes: 12, liked: false },
+        { id: 6007, author: "Emilio R.", avatar: "E", content: "io stavo uguale 8 mesi fa. adesso sono diverso. ce la farai, fidati.", time: "3 ore fa", likes: 10, liked: false },
+      ]},
+
+      { id: 205, author: "Francesca P.", avatar: "F", time: "7 ore fa", content: "la cosa più strana di questa community è che mi sento meno sola anche quando non scrivo niente. so che voi ci siete e già questo mi aiuta a passare le serate difficili.", likes: 67, liked: false, comments: [] },
+
+      { id: 206, author: "Tommaso V.", avatar: "T", time: "8 ore fa", content: "grazie per i tools. sul serio. il diario delle emozioni l'ho usato stanotte alle 3 quando stavo per cedere. l'ho aperto, ho scritto, e il momento critico è passato. una cosa piccola ma che ha fatto la differenza.", likes: 103, liked: false, comments: [
+        { id: 6008, author: "Giuliana F.", avatar: "G", content: "anche io il diario! di notte è il momento peggiore e avere qualcosa da fare salva. contento che sia passata 🙏", time: "7 ore fa", likes: 15, liked: false },
+        { id: 6009, author: "Luca D.", avatar: "L", content: "non sapevo si potesse usare così. provo anche io stasera. grazie per la dritta", time: "6 ore fa", likes: 8, liked: false },
+      ]},
+
+      { id: 207, author: "Beatrice C.", avatar: "B", time: "9 ore fa", content: "giorno 14. so che per qualcuno qui sono bruscolini ma per me è tipo un mese. ogni giorno è una battaglia ma ogni sera sono ancora qua.", likes: 82, liked: false, comments: [] },
+
+      { id: 208, author: "Stefano M.", avatar: "S", time: "10 ore fa", content: "la mia paura più grande? che le persone che amo scoprano quanto sono stato in basso. ho vergogna. una vergogna enorme. qualcuno l'ha superata questa cosa?", likes: 74, liked: false, comments: [
+        { id: 6010, author: "Alessia M.", avatar: "A", content: "io ci ho messo quasi un anno per dirlo in faccia a qualcuno. ma quando l'ho fatto mi sono sentita leggera per la prima volta. la vergogna non sparisce subito ma si alleggerisce.", time: "9 ore fa", likes: 19, liked: false },
+        { id: 6011, author: "Roberto L.", avatar: "R", content: "fratello la vergogna l'hanno inventata per farti stare fermo. tu stai chiedendo aiuto, questo è già tutto", time: "8 ore fa", likes: 23, liked: false },
+        { id: 6012, author: "Claudia N.", avatar: "C", content: "anche io avevo questa paura. poi ho capito che chi mi vuole bene davvero era già lì ad aspettarmi", time: "7 ore fa", likes: 14, liked: false },
+      ]},
+
+      { id: 209, author: "Lorenzo G.", avatar: "L", time: "11 ore fa", content: "diciamoci la verità: certi giorni non ci credo. penso che tanto tornerò dove ero. poi mi sveglio il giorno dopo e provo di nuovo. ma il dubbio c'è sempre, inutile fare i finti ottimisti.", likes: 91, liked: false, comments: [] },
+
+      { id: 210, author: "Michela R.", avatar: "M", time: "12 ore fa", content: "oggi ho rifiutato un invito. sapevo che lì avrei ceduto. l'ho detto no e sono rimasta a casa da sola. mi sentivo stupida e sola ma sapevo che era la cosa giusta. eccolo il coraggio, no?", likes: 88, liked: false, comments: [
+        { id: 6013, author: "Francesca P.", avatar: "F", content: "sì esatto quello è il coraggio vero. non quello dei film, quello di dire no quando costa", time: "11 ore fa", likes: 20, liked: false },
+        { id: 6014, author: "Gianluca F.", avatar: "G", content: "ci vuole un sacco di forza a fare quello che hai fatto. ci vuole più coraggio a restare a casa che ad andare, credimi 👏", time: "10 ore fa", likes: 17, liked: false },
+      ]},
+
+      { id: 211, author: "Andrea Z.", avatar: "A", time: "13 ore fa", content: "voglio riprendere a suonare la chitarra. la lasciavo stare da anni perché non riuscivo a concentrarmi. ieri ho preso uno spartito in mano per la prima volta. non so suonare ancora bene ma oddio che bella sensazione.", likes: 66, liked: false, comments: [] },
+
+      { id: 212, author: "Paola D.", avatar: "P", time: "14 ore fa", content: "questa community è l'unico posto dove posso scrivere quello che sento senza essere giudicata. a casa non riescono ancora a capire bene. qui almeno so che qualcuno sa di cosa parlo.", likes: 79, liked: false, comments: [] },
+
+      { id: 213, author: "Emanuele T.", avatar: "E", time: "15 ore fa", content: "il coach mi ha insegnato una tecnica di respirazione che uso ogni volta che arriva il craving. suona stupido ma funziona. sono al giorno 47 e quel metodo mi ha salvato almeno 10 volte.", likes: 95, liked: false, comments: [
+        { id: 6015, author: "Valentina S.", avatar: "V", content: "qual è la tecnica? puoi condividerla? sto cercando qualcosa da usare la sera", time: "14 ore fa", likes: 11, liked: false },
+        { id: 6016, author: "Emanuele T.", avatar: "E", content: "respiro 4 secondi, trattengo 4, espiro 8. lento, concentrato. nel frattempo mi ancoro a una cosa concreta tipo un oggetto che tengo in mano. funziona davvero", time: "13 ore fa", likes: 24, liked: false },
+        { id: 6017, author: "Stefano M.", avatar: "S", content: "provo subito stasera. grazie era proprio quello che cercavo", time: "12 ore fa", likes: 9, liked: false },
+      ]},
+
+      { id: 214, author: "Chiara B.", avatar: "C", time: "16 ore fa", content: "100 giorni. cento. non avrei scommesso 5 centesimi su di me 4 mesi fa. e invece eccomi qua.", likes: 134, liked: false, comments: [] },
+
+      { id: 215, author: "Dario N.", avatar: "D", time: "17 ore fa", content: "ho paura di ricadere durante le feste. natale, capodanno... sono sempre stati i momenti peggiori. come fate voi?", likes: 57, liked: false, comments: [
+        { id: 6018, author: "Paola D.", avatar: "P", content: "io preparo un piano prima. so già chi chiamo, cosa faccio se sento il bisogno, ho il numero del coach salvato. avere un piano mi aiuta a non sentirmi impreparata", time: "16 ore fa", likes: 16, liked: false },
+        { id: 6019, author: "Lorenzo G.", avatar: "L", content: "anche io ci ho paura. ma quest'anno almeno non sono solo. già questo cambia tutto", time: "15 ore fa", likes: 13, liked: false },
+        { id: 6020, author: "Coach Martina", avatar: "C", content: "pianificare è fondamentale. scrivetemi in privato se volete costruire insieme un piano per le feste 🙏", time: "14 ore fa", likes: 22, liked: false, isCoach: true } as Comment,
+      ]},
+
+      { id: 216, author: "Ilaria V.", avatar: "I", time: "18 ore fa", content: "sono qui da 2 settimane e ancora non sono sicura che funzionerà. mi dicono che devo avere fiducia nel processo ma è dura quando non vedi ancora niente di concreto. lo so che ci vuole tempo ma voglio risultati adesso.", likes: 48, liked: false, comments: [] },
+
+      { id: 217, author: "Nicola P.", avatar: "N", time: "19 ore fa", content: "ieri ho avuto un momento difficilissimo. invece di cedere ho tirato fuori il telefono e ho scritto in questa chat. nessuno ha risposto subito ma il fatto stesso di scriverlo mi ha dato il tempo di passare il momento. potere delle parole.", likes: 76, liked: false, comments: [
+        { id: 6021, author: "Michela R.", avatar: "M", content: "lo faccio anche io. scrivere aiuta anche quando nessuno risponde. è come mettere fuori il pensiero invece di tenerlo dentro", time: "18 ore fa", likes: 18, liked: false },
+        { id: 6022, author: "Andrea Z.", avatar: "A", content: "hai fatto la cosa giusta. e comunque qui rispondiamo sempre, magari con un po' di ritardo ma ci siamo 💙", time: "17 ore fa", likes: 14, liked: false },
+      ]},
+
+      { id: 218, author: "Simona L.", avatar: "S", time: "20 ore fa", content: "mi sono iscritta a un corso di yoga. lo so che non c'entra niente con la dipendenza ma il coach mi ha detto che muovere il corpo aiuta. boh, vedremo. ma intanto sono uscita di casa e questo per me è già qualcosa.", likes: 55, liked: false, comments: [] },
+
+      { id: 219, author: "Federico R.", avatar: "F", time: "21 ore fa", content: "questa è la prima community dove non mi sento fuori posto. di solito sui social mi sento sempre a disagio. qui si parla di cose vere, senza filtri. è strano ma è casa.", likes: 88, liked: false, comments: [
+        { id: 6023, author: "Chiara B.", avatar: "C", content: "hai detto benissimo. casa. è esattamente così che la sento", time: "20 ore fa", likes: 21, liked: false },
+        { id: 6024, author: "Ilaria V.", avatar: "I", content: "sono solo 2 settimane che sono qui e anch'io sento questa cosa. è strano ma è reale", time: "19 ore fa", likes: 12, liked: false },
+        { id: 6025, author: "Beatrice C.", avatar: "B", content: "ci sei arrivato. e noi ci siamo. benvenuto davvero 🙏", time: "18 ore fa", likes: 10, liked: false },
+      ]},
+
+      { id: 220, author: "Matteo G.", avatar: "M", time: "22 ore fa", content: "l'app mi ha aiutato tantissimo avere tutto in un posto. il percorso, la chat col coach, il diario. prima avevo mille cose sparse e mi perdevo. adesso ho un filo.", likes: 62, liked: false, comments: [] },
+
+      { id: 221, author: "Serena C.", avatar: "S", time: "23 ore fa", content: "stamattina mi sono guardata allo specchio e per la prima volta da anni non ho visto solo i casini che ho combinato. ho visto una persona che sta cercando di cambiare. piccolo ma enorme per me.", likes: 118, liked: false, comments: [
+        { id: 6026, author: "Emanuele T.", avatar: "E", content: "questo è uno dei momenti chiave del percorso, quando smetti di vederti solo con gli occhi del passato. vai avanti 🔥", time: "22 ore fa", likes: 28, liked: false },
+        { id: 6027, author: "Dario N.", avatar: "D", content: "mi hai fatto venire i brividi. grazie per aver condiviso questa cosa così intima", time: "21 ore fa", likes: 19, liked: false },
+        { id: 6028, author: "Nicola P.", avatar: "N", content: "quella persona che vedi nello specchio è reale. più reale di tutto il resto", time: "20 ore fa", likes: 15, liked: false },
+      ]},
+
+      { id: 222, author: "Luca B.", avatar: "L", time: "1 giorno fa", content: "ho paura di non essere abbastanza forte. ogni volta che sto bene penso che durerà poco. come se non meritassi di stare bene per troppo tempo.", likes: 69, liked: false, comments: [] },
+
+      { id: 223, author: "Giulia T.", avatar: "G", time: "1 giorno fa", content: "sinceramente? certi contenuti del percorso li trovo ripetitivi. le tecniche le ho sentite mille volte. la cosa che funziona davvero è il coach e questa community. il resto boh.", likes: 43, liked: false, comments: [] },
+
+      { id: 224, author: "Roberto F.", avatar: "R", time: "1 giorno fa", content: "oggi sono andato dal medico. da solo. senza che nessuno mi obbligasse. e gli ho detto la verità sulla mia situazione. tutta. non avevo mai fatto questa cosa. tremavo ma l'ho fatto.", likes: 97, liked: false, comments: [
+        { id: 6029, author: "Serena C.", avatar: "S", content: "roberto questo è ENORME. ci vuole un coraggio che pochi hanno. applausi seri 👏👏", time: "23 ore fa", likes: 26, liked: false },
+        { id: 6030, author: "Simona L.", avatar: "S", content: "il primo che riesce a dirlo al medico fa la cosa più difficile. da lì in poi è tutto più facile, anche se sembra impossibile adesso", time: "22 ore fa", likes: 18, liked: false },
+      ]},
+
+      { id: 225, author: "Cristina M.", avatar: "C", time: "1 giorno fa", content: "voglio tornare a essere la persona che ero prima. o forse voglio diventare una versione migliore. non lo so ancora bene. ma so che non voglio restare quello che sono adesso.", likes: 71, liked: false, comments: [] },
+
+      { id: 226, author: "Enrico S.", avatar: "E", time: "1 giorno fa", content: "ieri ho visto che uno che era qui da tanto ha raggiunto i 6 mesi. non lo conosco di persona ma mi ha fatto venire voglia di andare avanti. strano come le storie degli altri ti diano forza.", likes: 84, liked: false, comments: [
+        { id: 6031, author: "Federico R.", avatar: "F", content: "è esatto quello che sento anch'io. le storie qui mi motivano più di qualsiasi discorso motivazionale su internet", time: "23 ore fa", likes: 22, liked: false },
+        { id: 6032, author: "Luca B.", avatar: "L", content: "anche io guardo i traguardi degli altri e penso: vabbè se ce l'ha fatta lui... ci provo anch'io", time: "22 ore fa", likes: 17, liked: false },
+        { id: 6033, author: "Giulia T.", avatar: "G", content: "questo è il motivo per cui vale la pena condividere anche le piccole cose. non sai mai chi stai aiutando", time: "21 ore fa", likes: 13, liked: false },
+      ]},
+
+      { id: 227, author: "Miriam D.", avatar: "M", time: "1 giorno fa", content: "il supporto del coach nel momento di crisi alle 11 di sera ha fatto la differenza. non me lo aspettavo che ci fosse davvero qualcuno. invece c'era. grazie.", likes: 76, liked: false, comments: [] },
+
+      { id: 228, author: "Salvatore B.", avatar: "S", time: "2 giorni fa", content: "61 giorni. quando ero a zero pensavo che 60 fosse un numero impossibile. adesso sono qui e mi sembra ancora un sogno. ma è reale. sono reale.", likes: 107, liked: false, comments: [] },
+
+      { id: 229, author: "Annalisa R.", avatar: "A", time: "2 giorni fa", content: "domani ho una cena con persone che non vedevo da anni. persone di quando stavo male. ho paura di come mi vedranno, di cosa penseranno. ho paura di chi ero.", likes: 58, liked: false, comments: [
+        { id: 6034, author: "Roberto F.", avatar: "R", content: "ti capisco alla follia. ma quelle persone vedranno una che ha fatto una cosa difficilissima. anche se non lo sanno, tu lo sai.", time: "1 giorno fa", likes: 19, liked: false },
+        { id: 6035, author: "Cristina M.", avatar: "C", content: "vai e poi ci racconti. siamo qui 💙", time: "1 giorno fa", likes: 14, liked: false },
+        { id: 6036, author: "Enrico S.", avatar: "E", content: "la versione di te di adesso è già diversa da chi eri. chi ti vuole bene lo vedrà.", time: "1 giorno fa", likes: 11, liked: false },
+      ]},
+
+      { id: 230, author: "Piero V.", avatar: "P", time: "2 giorni fa", content: "ho fatto tutti e 3 i questionari di valutazione e onestamente mi sembrano un po' generici. la parte umana con il coach è molto più utile. ma forse sono io che mi aspetto troppo.", likes: 36, liked: false, comments: [] },
+
+      { id: 231, author: "Rosaria T.", avatar: "R", time: "2 giorni fa", content: "oggi ho detto no alla mia dipendenza e sì a una passeggiata. sembra poco ma per me è stato scegliere. scegliere me stessa.", likes: 83, liked: false, comments: [] },
+
+      { id: 232, author: "Davide M.", avatar: "D", time: "2 giorni fa", content: "sono a pezzi oggi ma non ho ceduto. è una di quelle giornate dove vorresti arrenderti ma non lo fai. non so da dove mi viene la forza ma c'è. ancora.", likes: 93, liked: false, comments: [
+        { id: 6037, author: "Miriam D.", avatar: "M", content: "quelle giornate sono le più difficili e le più importanti. le stai attraversando. bravissimo 🔥", time: "2 giorni fa", likes: 24, liked: false },
+        { id: 6038, author: "Salvatore B.", avatar: "S", content: "la forza viene dal fatto che hai scelto di esserci. anche oggi. anche a pezzi.", time: "2 giorni fa", likes: 20, liked: false },
+        { id: 6039, author: "Annalisa R.", avatar: "A", content: "domani ti sveglierai e saprai che ieri hai vinto. tienitelo stretto", time: "2 giorni fa", likes: 16, liked: false },
+      ]},
+
+      { id: 233, author: "Teresa G.", avatar: "T", time: "2 giorni fa", content: "a volte basta sapere che ci sono altre persone che capiscono. non serve nemmeno che parlino. solo sapere. questa community mi dà questo e non è poco.", likes: 65, liked: false, comments: [] },
+
+      { id: 234, author: "Carmine L.", avatar: "C", time: "3 giorni fa", content: "il percorso mi ha ridato una struttura alla giornata. prima vivevo in un caos totale. adesso ho degli orari, delle routine. sembra roba da niente ma per me ha cambiato tutto.", likes: 72, liked: false, comments: [] },
+
+      { id: 235, author: "Giuseppina M.", avatar: "G", time: "3 giorni fa", content: "giorno 1. lo scrivo qua perché se lo dico ad alta voce forse diventa più reale. giorno 1. eccomi.", likes: 121, liked: false, comments: [] },
+
+      { id: 236, author: "Rocco F.", avatar: "R", time: "3 giorni fa", content: "ogni sera prima di dormire arriva quella voce che dice 'tanto ricadi'. ho paura che un giorno quella voce abbia ragione. come la fate tacere voi?", likes: 68, liked: false, comments: [
+        { id: 6040, author: "Davide M.", avatar: "D", content: "quella voce non smette subito ma diventa più silenziosa col tempo. ci vuole un po' ma succede. resisti.", time: "3 giorni fa", likes: 22, liked: false },
+        { id: 6041, author: "Teresa G.", avatar: "T", content: "io rispondo a quella voce con i fatti: 'oggi non l'ho fatto'. un giorno alla volta. la voce parla di futuro, tu rispondi con oggi.", time: "3 giorni fa", likes: 29, liked: false },
+        { id: 6042, author: "Carmine L.", avatar: "C", content: "la voce mente. lo so che è difficile crederci ma mente. tu sei qui e questo vale tutto.", time: "3 giorni fa", likes: 18, liked: false },
+      ]},
+
+      { id: 237, author: "Monica C.", avatar: "M", time: "3 giorni fa", content: "non capisco perché certi giorni è tutto ok e poi senza motivo arriva il buio. non c'è stato niente di particolare. il craving arriva quando vuole lui e non capisco come fermarlo.", likes: 52, liked: false, comments: [] },
+
+      { id: 238, author: "Pasquale D.", avatar: "P", time: "4 giorni fa", content: "ho smesso di nascondermi. non ho ancora detto tutto a tutti ma non mi vergogno più di fare questo percorso. anzi, quasi quasi sono fiero.", likes: 86, liked: false, comments: [] },
+
+      { id: 239, author: "Nunzia T.", avatar: "N", time: "4 giorni fa", content: "voglio vedere mio figlio crescere con una madre presente. questa è la mia motivazione. quando voglio cedere penso a lui. funziona ogni volta.", likes: 143, liked: false, comments: [] },
     ],
   },
   {
