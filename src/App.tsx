@@ -11,6 +11,8 @@ import Login from "./pages/Login";
 import Percorsi from "./pages/Percorsi";
 import PercorsoDetail from "./pages/PercorsoDetail";
 import PercorsoQuestionario from "./pages/PercorsoQuestionario";
+import PrenotaCalendario from "./pages/PrenotaCalendario";
+import PrenotaRegistrazione from "./pages/PrenotaRegistrazione";
 import Installa from "./pages/Installa";
 import Invita from "./pages/Invita";
 import NotFound from "./pages/NotFound";
@@ -40,6 +42,7 @@ import Strumenti from "./pages/Strumenti";
 import Autovalutazione from "./pages/Autovalutazione";
 import Profilo from "./pages/Profilo";
 import Ricevute from "./pages/Ricevute";
+import Riepilogo from "./pages/Riepilogo";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +74,8 @@ const App = () => (
             <Route path="/percorsi" element={<Percorsi />} />
             <Route path="/percorsi/:id" element={<PercorsoDetail />} />
             <Route path="/percorsi/:id/questionario" element={<PercorsoQuestionario />} />
+            <Route path="/prenota/calendario" element={<PrenotaCalendario />} />
+            <Route path="/prenota/registrazione" element={<PrenotaRegistrazione />} />
             <Route path="/installa" element={<Installa />} />
             <Route path="/invita" element={<Invita />} />
 
@@ -106,6 +111,7 @@ const App = () => (
             <Route path="/autovalutazione" element={<P><Autovalutazione /></P>} />
             <Route path="/profilo" element={<P><Profilo /></P>} />
             <Route path="/ricevute" element={<P><Ricevute /></P>} />
+            <Route path="/riepilogo" element={<P><Riepilogo /></P>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

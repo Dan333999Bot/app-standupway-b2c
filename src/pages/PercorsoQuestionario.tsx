@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { trackFunnel, trackEvent } from "@/lib/analytics";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { ArrowLeft, ArrowRight, Heart, Phone, Sparkles, Wind, BookOpen, Users, Home as HomeIcon, Clock, ShieldCheck, Lock, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -240,8 +241,12 @@ const PercorsoQuestionario = () => {
 
   const step = steps[i];
 
+  const { user } = useAuth();
+
   if (isEnd) {
     const level = score >= 12 ? "alto" : score >= 6 ? "medio" : "basso";
+    // Salva dati funnel in sessionStorage per le pagine successive
+    sessionStorage.setItem("sw_funnel", JSON.stringify({ dipendenza: id, score, level }));
     const config = {
       alto: {
         badge: "Supporto immediato consigliato",
@@ -289,7 +294,7 @@ const PercorsoQuestionario = () => {
 
           <div className="space-y-2.5">
             <Button asChild size="lg" className="w-full h-14 text-base font-semibold" onClick={() => trackEvent("questionario_book_colloquio", "percorso_questionario", { percorso: id, score, level: score >= 12 ? "alto" : score >= 6 ? "medio" : "basso" })}>
-              <Link to="/prenota">
+              <Link to={user ? "/prenota" : "/prenota/calendario"}>
                 <CalendarCheck className="w-5 h-5 mr-2" /> Prenota il colloquio · 49€
               </Link>
             </Button>
