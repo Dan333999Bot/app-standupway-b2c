@@ -1,9 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, Route, Headphones, BookOpen, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const BottomNav = () => {
   const location = useLocation();
+  const { user, loading } = useAuth();
+
+  // Mostra il menu solo se l'utente è autenticato
+  if (loading || !user) return null;
 
   const navItems = [
     { label: "Home", href: "/home", icon: Home, match: ["/home", "/"] },
