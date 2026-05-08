@@ -1,68 +1,138 @@
 import { useState } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { trackEvent } from "@/lib/analytics";
-import { useCourses, type Corso } from "@/hooks/useCourses";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
 import { BackButton } from "@/components/BackButton";
-import { Clock, Play, BookOpen, Check, CreditCard, Building2 } from "lucide-react";
+import { Clock, Play, BookOpen, Loader2, ArrowRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
-const corsiOnDemand = [
-  { id: 1, title: "Fondamenti del Recupero", description: "Le basi per iniziare il tuo percorso di cambiamento", duration: "2h 30min", lessons: 8, price: "Gratuito", free: true, image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop" },
-  { id: 2, title: "Capire la Dipendenza", description: "Cos'è la dipendenza e come funziona il cervello", duration: "1h 20min", lessons: 5, price: "Gratuito", free: true, image: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=300&fit=crop" },
-  { id: 3, title: "Gestire i Trigger", description: "Tecniche pratiche per riconoscere e gestire i trigger quotidiani", duration: "1h 45min", lessons: 6, price: "29€", free: false, image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400&h=300&fit=crop" },
-  { id: 4, title: "Mindfulness per il Recupero", description: "Pratiche di consapevolezza per la vita quotidiana", duration: "3h 15min", lessons: 12, price: "39€", free: false, image: "https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop" },
-  { id: 5, title: "Ricostruire le Relazioni", description: "Come riparare e costruire relazioni sane dopo la dipendenza", duration: "2h 00min", lessons: 7, price: "35€", free: false, image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop" },
-  { id: 6, title: "Prevenzione delle Ricadute", description: "Strategie concrete per prevenire le ricadute nel lungo termine", duration: "2h 30min", lessons: 9, price: "39€", free: false, image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop" },
-  { id: 7, title: "Gestione dello Stress", description: "Tecniche di rilassamento e gestione dello stress quotidiano", duration: "1h 50min", lessons: 7, price: "29€", free: false, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop" },
-  { id: 8, title: "Nutrizione e Recupero", description: "L'importanza dell'alimentazione nel percorso di recupero", duration: "1h 30min", lessons: 6, price: "29€", free: false, image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop" },
-  { id: 9, title: "Sonno e Benessere", description: "Migliorare la qualità del sonno durante il recupero", duration: "1h 15min", lessons: 5, price: "29€", free: false, image: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&h=300&fit=crop" },
-  { id: 10, title: "Costruire una Nuova Identità", description: "Riscoprire chi sei al di là della dipendenza", duration: "3h 00min", lessons: 10, price: "49€", free: false, image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=300&fit=crop" },
-];
+interface Corso {
+  id: number;
+  title: string;
+  description: string;
+  duration: string;
+  lessons: number;
+  price: string;
+  free: boolean;
+  image_url: string;
+}
 
-const corsoLezioni = [
-  { id: 1, title: "Introduzione al corso", duration: "15 min", free: true },
-  { id: 2, title: "Cos'è il recupero", duration: "20 min", free: true },
-  { id: 3, title: "I primi passi", duration: "18 min" },
-  { id: 4, title: "Costruire le fondamenta", duration: "22 min" },
-  { id: 5, title: "La routine quotidiana", duration: "19 min" },
+const CORSI: Corso[] = [
+  {
+    id: 1,
+    title: "SPEZZA LA ROUTINE",
+    description: "Tecniche pratiche per interrompere i pattern automatici che alimentano la dipendenza e costruire nuove abitudini quotidiane.",
+    duration: "1h 30min",
+    lessons: 6,
+    price: "Gratuito",
+    free: true,
+    image_url: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop",
+  },
+  {
+    id: 2,
+    title: "TORNA AL COMANDO",
+    description: "Riprendi il controllo della tua vita attraverso esercizi pratici di consapevolezza, gestione delle emozioni e rinforzo della motivazione.",
+    duration: "1h 45min",
+    lessons: 7,
+    price: "Gratuito",
+    free: true,
+    image_url: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=400&h=300&fit=crop",
+  },
+  {
+    id: 3,
+    title: "Gestire i Trigger",
+    description: "Tecniche pratiche per riconoscere e gestire i trigger quotidiani che scatenano il craving.",
+    duration: "1h 45min",
+    lessons: 6,
+    price: "29€",
+    free: false,
+    image_url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=300&fit=crop",
+  },
+  {
+    id: 4,
+    title: "Mindfulness per il Recupero",
+    description: "Pratiche di consapevolezza per vivere il momento presente e ridurre l'ansia nei momenti difficili.",
+    duration: "3h 15min",
+    lessons: 12,
+    price: "39€",
+    free: false,
+    image_url: "https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop",
+  },
+  {
+    id: 5,
+    title: "Ricostruire le Relazioni",
+    description: "Come riparare e costruire relazioni sane dopo la dipendenza. Comunicazione, fiducia e confini.",
+    duration: "2h 00min",
+    lessons: 7,
+    price: "35€",
+    free: false,
+    image_url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop",
+  },
+  {
+    id: 6,
+    title: "Prevenzione delle Ricadute",
+    description: "Strategie concrete per riconoscere i segnali di rischio e prevenire le ricadute nel lungo termine.",
+    duration: "2h 30min",
+    lessons: 9,
+    price: "39€",
+    free: false,
+    image_url: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop",
+  },
+  {
+    id: 7,
+    title: "Gestione dello Stress",
+    description: "Tecniche di rilassamento e gestione dello stress quotidiano senza ricorrere a sostanze.",
+    duration: "1h 50min",
+    lessons: 7,
+    price: "29€",
+    free: false,
+    image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
+  },
 ];
 
 const Corsi = () => {
   usePageTracking("corsi");
-  const { courses: corsiOnDemand } = useCourses();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedCorso, setSelectedCorso] = useState<Corso | null>(null);
-  const [showPurchase, setShowPurchase] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"carta" | "bonifico" | null>(null);
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [requested, setRequested] = useState(false);
 
   const handleCorsoClick = (corso: Corso) => {
     if (corso.free) {
       navigate(`/corso/${corso.id}`);
-    } else if (corso.stripe_url) {
-      trackEvent("corso_purchase_intent", "corsi", { id: corso.id, title: corso.title });
-      window.open(corso.stripe_url, '_blank');
     } else {
+      trackEvent("corso_access_intent", "corsi", { id: corso.id, title: corso.title });
       setSelectedCorso(corso);
-      setShowPurchase(true);
-      setShowPayment(false);
-      setPaymentMethod(null);
+      setEmail("");
+      setRequested(false);
     }
   };
 
-  const handleStartPayment = () => setShowPayment(true);
+  const handleRichiediAccesso = async () => {
+    if (!email.trim()) return;
+    setSubmitting(true);
+    await supabase.from("course_access_requests").insert({
+      corso_id: selectedCorso?.id,
+      corso_title: selectedCorso?.title,
+      user_id: localStorage.getItem("sw_user_id"),
+      email: email.trim(),
+    });
+    setSubmitting(false);
+    setRequested(true);
+    trackEvent("corso_access_requested", "corsi", { id: selectedCorso?.id, title: selectedCorso?.title });
+  };
 
-  const handleConfirmPayment = () => {
-    toast({ title: "Acquisto completato! ✅", description: `${selectedCorso?.title} - Buono studio!` });
-    setShowPurchase(false);
-    setShowPayment(false);
-    setPaymentMethod(null);
+  const closeDialog = () => {
+    setSelectedCorso(null);
+    setEmail("");
+    setRequested(false);
   };
 
   return (
@@ -81,12 +151,12 @@ const Corsi = () => {
       <div className="px-4 py-6 bg-surface-inset min-h-[calc(100vh-80px)] space-y-3">
         <div className="rounded-lg p-3 border-l-2 border-primary/50 bg-surface-2">
           <p className="text-xs text-muted-foreground">
-            Corsi video da seguire quando vuoi, al tuo ritmo. Inizia dai corsi gratuiti!
+            Inizia dai corsi gratuiti — i corsi a pagamento sono in arrivo presto.
           </p>
         </div>
 
         <div className="grid gap-3">
-          {corsiOnDemand.map((corso) => (
+          {CORSI.map((corso) => (
             <button
               key={corso.id}
               onClick={() => handleCorsoClick(corso)}
@@ -102,7 +172,9 @@ const Corsi = () => {
                   {corso.free ? (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/90 text-white">GRATIS</span>
                   ) : (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground">{corso.price}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/90 text-muted-foreground flex items-center gap-1">
+                      <Lock className="w-2.5 h-2.5" /> In arrivo
+                    </span>
                   )}
                 </div>
                 <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5">
@@ -116,8 +188,8 @@ const Corsi = () => {
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{corso.duration}</span>
                     <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" />{corso.lessons} lezioni</span>
                   </div>
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full ${corso.free ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
-                    {corso.free ? "Inizia gratis" : "Acquista"}
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full ${corso.free ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}>
+                    {corso.free ? "Inizia gratis" : "Richiedi accesso"}
                   </span>
                 </div>
               </div>
@@ -126,105 +198,64 @@ const Corsi = () => {
         </div>
       </div>
 
-      {/* Purchase popup */}
-      <Dialog open={showPurchase} onOpenChange={(open) => { if (!open) { setShowPurchase(false); setShowPayment(false); setPaymentMethod(null); } }}>
+      {/* Modal "Richiedi accesso" per corsi a pagamento */}
+      <Dialog open={!!selectedCorso && !selectedCorso.free} onOpenChange={(open) => { if (!open) closeDialog(); }}>
         <DialogContent className="max-w-[360px] rounded-2xl">
-          {selectedCorso && !showPayment && (
+          {selectedCorso && (
             <>
               <DialogHeader>
-                <DialogTitle>{selectedCorso.title}</DialogTitle>
+                <DialogTitle className="text-base">{selectedCorso.title}</DialogTitle>
                 <DialogDescription>{selectedCorso.description}</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <img src={selectedCorso.image_url} alt={selectedCorso.title} className="w-full h-36 object-cover rounded-xl" />
-                <div className="space-y-2">
+
+              {!requested ? (
+                <div className="space-y-4">
+                  <img src={selectedCorso.image_url} alt={selectedCorso.title} className="w-full h-36 object-cover rounded-xl" />
+
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{selectedCorso.duration}</span>
                     <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" />{selectedCorso.lessons} lezioni</span>
+                    <span className="ml-auto font-semibold text-foreground">{selectedCorso.price}</span>
                   </div>
-                  <h4 className="text-xs font-semibold text-foreground mt-3">Contenuto del corso:</h4>
-                  <div className="space-y-1.5">
-                    {corsoLezioni.map((lez) => (
-                      <div key={lez.id} className="flex items-center gap-2 text-xs p-2 rounded-lg bg-secondary/30">
-                        <Play className="w-3 h-3 text-primary flex-shrink-0" />
-                        <span className="flex-1 text-foreground">{lez.title}</span>
-                        <span className="text-muted-foreground">{lez.duration}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-3 border-t border-border/30">
-                  <span className="text-lg font-bold text-foreground">{selectedCorso.price}</span>
-                  <Button onClick={handleStartPayment}>Acquista ora</Button>
-                </div>
-              </div>
-            </>
-          )}
 
-          {selectedCorso && showPayment && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Pagamento</DialogTitle>
-                <DialogDescription>{selectedCorso.title} — {selectedCorso.price}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-xs text-muted-foreground">Seleziona il metodo di pagamento:</p>
-                <button
-                  onClick={() => setPaymentMethod("carta")}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${paymentMethod === "carta" ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <CreditCard className="w-4 h-4 text-primary" />
+                  <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 text-xs text-foreground/80 leading-relaxed">
+                    Questo corso è <strong>in uscita a breve</strong>. Lascia la tua email e ti contatteremo non appena sarà disponibile.
                   </div>
+
                   <div>
-                    <p className="text-sm font-medium text-foreground">Carta di credito/debito</p>
-                    <p className="text-[10px] text-muted-foreground">Visa, Mastercard, Amex</p>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1.5">La tua email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="nome@email.com"
+                      className="w-full bg-secondary/50 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    />
                   </div>
-                  {paymentMethod === "carta" && <Check className="w-4 h-4 text-primary ml-auto" />}
-                </button>
-                <button
-                  onClick={() => setPaymentMethod("bonifico")}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${paymentMethod === "bonifico" ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-primary" />
+
+                  <Button
+                    onClick={handleRichiediAccesso}
+                    disabled={!email.trim() || submitting}
+                    className="w-full"
+                  >
+                    {submitting
+                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Invio…</>
+                      : <>Richiedi accesso <ArrowRight className="w-4 h-4 ml-1" /></>
+                    }
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-6 space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mx-auto">
+                    <span className="text-2xl">✅</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Bonifico bancario</p>
-                    <p className="text-[10px] text-muted-foreground">Riceverai le coordinate via email</p>
-                  </div>
-                  {paymentMethod === "bonifico" && <Check className="w-4 h-4 text-primary ml-auto" />}
-                </button>
-                {paymentMethod === "carta" && (
-                  <div className="space-y-3 pt-2 border-t border-border/30">
-                    <div>
-                      <label className="text-xs font-medium text-foreground">Numero carta</label>
-                      <input className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground" placeholder="1234 5678 9012 3456" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs font-medium text-foreground">Scadenza</label>
-                        <input className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground" placeholder="MM/AA" />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-foreground">CVV</label>
-                        <input className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground" placeholder="123" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {paymentMethod === "bonifico" && (
-                  <div className="p-3 rounded-xl bg-secondary/30 space-y-1.5">
-                    <p className="text-xs font-medium text-foreground">Coordinate bancarie:</p>
-                    <p className="text-[11px] text-muted-foreground">IBAN: IT60 X054 2811 1010 0000 0123 456</p>
-                    <p className="text-[11px] text-muted-foreground">Intestato a: StandUp Srl</p>
-                    <p className="text-[11px] text-muted-foreground">Causale: Corso - {selectedCorso.title}</p>
-                  </div>
-                )}
-                <Button onClick={handleConfirmPayment} disabled={!paymentMethod} className="w-full">
-                  {paymentMethod === "bonifico" ? "Conferma ordine" : `Paga ${selectedCorso.price}`}
-                </Button>
-              </div>
+                  <p className="text-sm font-semibold text-foreground">Richiesta inviata!</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Ti contatteremo a <strong>{email}</strong> non appena il corso sarà disponibile.
+                  </p>
+                  <Button variant="outline" onClick={closeDialog} className="w-full mt-2">Chiudi</Button>
+                </div>
+              )}
             </>
           )}
         </DialogContent>

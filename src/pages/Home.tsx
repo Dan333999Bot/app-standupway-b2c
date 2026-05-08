@@ -64,7 +64,7 @@ const StateSenzaPercorso = ({ stripeUrl }: { stripeUrl?: string }) => (
     </div>
     <Link to="/percorsi" className="block">
       <Button variant="cta" size="lg" className="w-full">
-        Prenota il primo colloquio · 49€ <ArrowRight className="w-4 h-4 ml-1" />
+        Prenota il primo colloquio <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
     </Link>
   </div>
@@ -113,19 +113,11 @@ const StateDopoColloquio = ({
           </div>
         ))}
       </div>
-      {stripeTarget ? (
-        <a href={stripeTarget} target="_blank" rel="noopener noreferrer" className="block">
-          <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-white">
-            Inizia il percorso <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-        </a>
-      ) : (
-        <Link to="/percorso/preventivo" className="block">
-          <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-white">
-            Vedi il tuo preventivo <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-        </Link>
-      )}
+      <Link to="/percorsi" className="block">
+        <Button variant="cta" size="lg" className="w-full">
+          Prenota il primo colloquio <ArrowRight className="w-4 h-4 ml-1" />
+        </Button>
+      </Link>
     </div>
   );
 };
