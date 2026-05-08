@@ -79,43 +79,41 @@ const PrenotaCalendario = () => {
 
       <div className="flex-1 px-4 py-6 pb-32 max-w-lg mx-auto w-full space-y-6">
 
-        {/* Intro empatica */}
-        <div className="rounded-2xl bg-surface-1 border border-border/40 p-5 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Heart className="w-5 h-5 text-primary" />
+        {/* Intro con volto di Agnese */}
+        <div className="rounded-2xl overflow-hidden border border-border/40 bg-surface-1">
+          {/* Foto */}
+          <div className="relative h-52 bg-gradient-to-br from-zinc-900 to-zinc-800 overflow-hidden">
+            <img
+              src="/agnese.jpg"
+              alt="Agnese — Psicologa StandUp Way"
+              className="w-full h-full object-cover object-top"
+            />
+            {/* Gradient bottom overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            {/* Nome sovrapposto */}
+            <div className="absolute bottom-3 left-4">
+              <p className="text-white font-bold text-base leading-tight">Agnese</p>
+              <p className="text-white/70 text-xs">Psicologa clinica · StandUp Way</p>
             </div>
-            <div>
-              <p className="text-sm font-bold text-foreground">Un primo passo concreto.</p>
-              <p className="text-xs text-muted-foreground">30 minuti che possono cambiare tutto.</p>
+            {/* Badge segreto professionale */}
+            <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
+              <ShieldCheck className="w-3 h-3 text-green-400" />
+              <span className="text-[10px] text-white font-medium">Segreto professionale</span>
             </div>
           </div>
 
-          <p className="text-sm text-foreground/80 leading-relaxed">
-            Quello che hai condiviso nel questionario ci dà già un quadro chiaro. I nostri professionisti lavorano ogni giorno con persone che affrontano esattamente quello che stai vivendo tu — senza giudizi, con metodo clinico e piena riservatezza.
-          </p>
-
-          <p className="text-sm text-foreground/80 leading-relaxed">
-            Il colloquio iniziale dura 30 minuti ed è il momento in cui costruiamo insieme una prima lettura della tua situazione. Non è un impegno definitivo: è uno spazio riservato, sicuro, in cui puoi finalmente parlare apertamente.
-          </p>
-
-          <div className="space-y-2 pt-1">
-            {[
-              { icon: ShieldCheck, text: "Segreto professionale garantito — quello che dici resta tra te e il professionista" },
-              { icon: Video, text: "Online via video call — dal tuo spazio, quando ti senti pronto/a" },
-              { icon: Heart, text: "Equipe specializzata in dipendenze da oltre 10 anni" },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-start gap-2.5">
-                <Icon className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">{text}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-1 border-t border-border/30">
-            <p className="text-xs text-foreground/70 leading-relaxed">
-              <span className="font-semibold text-foreground">Scegli quando.</span> Seleziona il giorno e l'orario che preferisci — ti aspettiamo.
+          {/* Messaggio */}
+          <div className="p-4 space-y-3">
+            <p className="text-sm text-foreground leading-relaxed">
+              "Ho letto le tue risposte. Quello che stai attraversando è reale, e il fatto che tu sia arrivato/a fin qui dice già molto di te."
             </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Lavoro con persone in situazioni come la tua ogni giorno. Il primo colloquio — 30 minuti, online, in totale riservatezza — è solo per conoscerci e capire insieme da dove partire. Nessun impegno, nessun giudizio.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <Video className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <p className="text-xs text-muted-foreground">Online via video call · 49€ · Rimborso garantito entro 24h</p>
+            </div>
           </div>
         </div>
 
