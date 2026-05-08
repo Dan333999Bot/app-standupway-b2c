@@ -101,8 +101,8 @@ const communities: Community[] = [
     posts: [], zones,
   },
   {
-    id: "familiari", name: "Familiari", description: "Per le famiglie e i cari di chi è in percorso",
-    icon: HeartHandshake, members: 189, color: "bg-primary/10 text-primary",
+    id: "pubblica", name: "Bacheca Pubblica", description: "Aperta a tutti",
+    icon: Users, members: 2847, color: "bg-primary/10 text-primary",
     posts: [
       { id: 4, author: "Sara L.", avatar: "S", time: "1 giorno fa", content: "Mio fratello ha iniziato il percorso la settimana scorsa. Vedere i suoi progressi mi riempie di speranza. Grazie StandUp per il supporto alle famiglie. ❤️", likes: 31, liked: false, comments: [
         { id: 5001, author: "Laura B.", avatar: "L", content: "Che bella notizia Sara! Forza al tuo fratello 💪", time: "23 ore fa", likes: 6, liked: false },

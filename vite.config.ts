@@ -52,6 +52,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
+        cacheId: "sw-v3",
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
           {
