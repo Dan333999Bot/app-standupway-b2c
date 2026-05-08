@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CalendarCheck, Clock, Home, CreditCard, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import EmailVerifyModal from "@/components/EmailVerifyModal";
 
 interface FunnelData {
   dipendenza?: string;
@@ -33,11 +34,19 @@ const Riepilogo = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [funnel, setFunnel] = useState<FunnelData>({});
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const data = JSON.parse(sessionStorage.getItem("sw_funnel") || "{}");
     setFunnel(data);
+    const pending = sessionStorage.getItem("sw_verify_email");
+    if (pending) setVerifyEmail(pending);
   }, []);
+
+  const handleVerified = () => {
+    sessionStorage.removeItem("sw_verify_email");
+    setVerifyEmail(null);
+  };
 
   const level = funnel.level ?? "medio";
   const levelConfig = LEVEL_CONFIG[level];
@@ -52,6 +61,9 @@ const Riepilogo = () => {
 
   return (
     <div className="min-h-screen bg-surface-0 flex flex-col safe-area-top safe-area-bottom">
+      {verifyEmail && (
+        <EmailVerifyModal email={verifyEmail} onVerified={handleVerified} />
+      )}
       {/* Header */}
       <header className="bg-surface-1 border-b border-border/40 px-4 py-4">
         <div className="max-w-lg mx-auto">
@@ -154,8 +166,14 @@ const Riepilogo = () => {
       {/* CTA fissa in basso */}
       <div className="sticky bottom-0 bg-surface-1/95 backdrop-blur border-t border-border/40 px-4 py-4 safe-area-bottom space-y-2">
         <div className="max-w-lg mx-auto space-y-2">
-          <Button onClick={handlePagamento} className="w-full" size="lg">
-            <CreditCard className="w-4 h-4 mr-2" /> Vai al pagamento · 49€
+          <Button
+            onClick={handlePagamento}
+            disabled={!!verifyEmail}
+            className="w-full"
+            size="lg"
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            {verifyEmail ? "Verifica l'email per proseguire" : "Vai al pagamento · 49€"}
           </Button>
           <Button variant="ghost" onClick={() => navigate("/home")} className="w-full text-muted-foreground">
             <Home className="w-4 h-4 mr-1.5" /> Torna alla home

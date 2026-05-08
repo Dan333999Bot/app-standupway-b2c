@@ -89,8 +89,15 @@ const PrenotaRegistrazione = () => {
       status: "pending",
     });
 
+    // 4. Invia OTP per verifica email in-app
+    await supabase.auth.signInWithOtp({
+      email: form.email.trim(),
+      options: { shouldCreateUser: false },
+    });
+    sessionStorage.setItem("sw_verify_email", form.email.trim());
+
     setLoading(false);
-    // 4. Vai al riepilogo — la sessione è già attiva, ProtectedRoute non blocca
+    // 5. Vai al riepilogo — la sessione è già attiva, ProtectedRoute non blocca
     navigate("/riepilogo", { replace: true });
   };
 
