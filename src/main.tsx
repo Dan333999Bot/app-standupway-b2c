@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-const APP_CACHE_VERSION = "standupway-cache-reset-2026-05-08-v6";
+const APP_CACHE_VERSION = "standupway-cache-reset-2026-05-08-v7";
 
 // Meta Pixel
 (function (f: Window & typeof globalThis, b: Document, e: string, v: string) {

@@ -13,10 +13,8 @@ const Thankyou = () => {
     localStorage.setItem("sw_first_colloquio_done", "true");
     setUnlocked(true);
 
-    // ID univoco per deduplicare pixel + CAPI
     const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-    // Pixel browser
     if (typeof window.fbq === "function") {
       window.fbq("track", "Purchase", {
         value: 49,
@@ -26,13 +24,23 @@ const Thankyou = () => {
       }, { eventID: eventId });
     }
 
-    // CAPI server-side
     const email = sessionStorage.getItem("sw_verify_email") || "";
+    const getCookie = (name: string) => {
+      const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+      return match ? decodeURIComponent(match[1]) : "";
+    };
+    const fbp = getCookie("_fbp");
+    const fbc = getCookie("_fbc");
+    const userId = localStorage.getItem("sw_user_id");
+
     supabase.functions.invoke("meta-capi", {
       body: {
         event_name: "Purchase",
         event_id: eventId,
         email,
+        fbp,
+        fbc,
+        external_id: userId || "",
         value: 49,
         currency: "EUR",
         event_source_url: window.location.href,
@@ -43,7 +51,6 @@ const Thankyou = () => {
       else console.log("[CAPI] ok:", JSON.stringify(data));
     });
 
-    const userId = localStorage.getItem("sw_user_id");
     if (!userId) return;
     supabase
       .from("user_state")

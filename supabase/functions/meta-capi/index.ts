@@ -18,7 +18,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { event_name, event_id, email, value, currency, event_source_url, client_ip, client_user_agent } = await req.json();
+    const { event_name, event_id, email, fbp, fbc, external_id, value, currency, event_source_url, client_ip, client_user_agent, test_event_code } = await req.json();
 
     const user_data: Record<string, string> = {
       client_ip_address: client_ip ?? "",
@@ -26,8 +26,11 @@ serve(async (req) => {
     };
 
     if (email) user_data.em = await sha256(email);
+    if (fbp) user_data.fbp = fbp;
+    if (fbc) user_data.fbc = fbc;
+    if (external_id) user_data.external_id = await sha256(external_id);
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       data: [{
         event_name,
         event_time: Math.floor(Date.now() / 1000),
@@ -43,6 +46,8 @@ serve(async (req) => {
         },
       }],
     };
+
+    if (test_event_code) payload.test_event_code = test_event_code;
 
     const res = await fetch(
       `https://graph.facebook.com/v19.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`,
