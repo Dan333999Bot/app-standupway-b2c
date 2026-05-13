@@ -10,6 +10,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import PercorsiV2 from "./pages/v2/PercorsiV2";
 import RisultatoV2 from "./pages/v2/RisultatoV2";
 import PianoV2 from "./pages/v2/PianoV2";
+import AccessoV2 from "./pages/v2/AccessoV2";
+import PercorsoSuggerito from "./pages/PercorsoSuggerito";
 
 // Pagine pubbliche (no auth)
 import Login from "./pages/Login";
@@ -83,6 +85,7 @@ const App = () => (
             <Route path="/v2/:id/questionario" element={<PercorsoQuestionario />} />
             <Route path="/v2/:id/risultato" element={<RisultatoV2 />} />
             <Route path="/v2/:id/piano" element={<PianoV2 />} />
+            <Route path="/v2/:id/accesso" element={<AccessoV2 />} />
 
             {/* ── ZONA PUBBLICA — nessun login richiesto ── */}
             <Route path="/login" element={<Login />} />
@@ -125,6 +128,7 @@ const App = () => (
             <Route path="/prenota" element={<P><Prenota /></P>} />
             <Route path="/thankyou" element={<Thankyou />} />
 
+            <Route path="/percorso/suggerito" element={<P><PercorsoSuggerito /></P>} />
             <Route path="/servizi" element={<P><Servizi /></P>} />
             <Route path="/strumenti" element={<P><Strumenti /></P>} />
             <Route path="/autovalutazione" element={<P><Autovalutazione /></P>} />

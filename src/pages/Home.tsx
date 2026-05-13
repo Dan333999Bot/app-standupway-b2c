@@ -4,13 +4,25 @@ import { useUserState } from "@/hooks/useUserState";
 import { useAppConfig } from "@/hooks/useAppConfig";
 import { BottomNav } from "@/components/BottomNav";
 import { HeaderActions } from "@/components/HeaderActions";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Heart, ArrowRight, PlayCircle, Sparkles, Target, Flame,
   ClipboardList, Calendar as CalendarIcon, BookOpen, FileText,
   CheckCircle2, Smartphone, Search, MessageSquare, Rocket, Users, Lock,
+  CalendarDays, Clock, UserCheck, RefreshCcw, MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const FIGURA_LABEL: Record<string, string> = {
+  psicologo: "Psicologo/a",
+  educatore: "Educatore",
+  "coach-pari": "Coach Pari",
+};
+const GENERE_LABEL: Record<string, string> = {
+  donna: "Donna",
+  uomo: "Uomo",
+  nessuna: "Nessuna preferenza",
+};
 
 const quickLinks = [
   { icon: ClipboardList, label: "Report", to: "/percorso/report" },
@@ -33,6 +45,67 @@ function getSteps(userState: import("@/hooks/useUserState").UserState | null) {
 }
 
 /* ─── Percorso states ─────────────────────────────────────────────────── */
+
+// Stato 0: appuntamento prenotato ma non ancora pagato
+const StateAppuntamentoPendente = ({ appt }: { appt: { data?: string; ora?: string; professionista_figura?: string; professionista_genere?: string } }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="glass-card rounded-2xl p-4 border border-primary/40 space-y-3">
+      <span className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wider">
+        Appuntamento da confermare
+      </span>
+      <div className="space-y-2 pb-3 border-b border-border/30">
+        {appt.data && (
+          <div className="flex items-center gap-2.5">
+            <CalendarDays className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-sm font-semibold text-foreground">{appt.data}</span>
+          </div>
+        )}
+        {appt.ora && (
+          <div className="flex items-center gap-2.5">
+            <Clock className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-sm text-foreground">Ore {appt.ora} · 30 minuti</span>
+          </div>
+        )}
+        {appt.professionista_figura && (
+          <div className="flex items-center gap-2.5">
+            <UserCheck className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-sm text-foreground">
+              {FIGURA_LABEL[appt.professionista_figura] || appt.professionista_figura}
+              {appt.professionista_genere && appt.professionista_genere !== "nessuna" && ` · ${GENERE_LABEL[appt.professionista_genere]}`}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        <Link to="/percorso/visite" className="rounded-xl p-2.5 text-center bg-primary/10 border border-primary/30">
+          <CalendarIcon className="w-4 h-4 text-primary mx-auto" />
+          <p className="text-[10px] text-foreground font-semibold mt-1">Agenda</p>
+        </Link>
+        {[
+          { icon: FileText, label: "Preventivo" },
+          { icon: Target,   label: "Obiettivi" },
+          { icon: BookOpen, label: "Diario" },
+        ].map((l) => (
+          <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
+            <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
+            <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
+            <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
+              <Lock className="w-2.5 h-2.5 text-background" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
+        <RefreshCcw className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+        <p className="text-[11px] text-emerald-600 leading-snug">Rimborso garantito entro 24h se non sei soddisfatto</p>
+      </div>
+      <Button onClick={() => navigate("/prenota/benvenuto")} variant="cta" size="lg" className="w-full">
+        Conferma e paga · 49€ <ArrowRight className="w-4 h-4 ml-1" />
+      </Button>
+    </div>
+  );
+};
 
 // Stato 1: nessun colloquio
 const StateSenzaPercorso = ({ stripeUrl }: { stripeUrl?: string }) => (
@@ -65,6 +138,44 @@ const StateSenzaPercorso = ({ stripeUrl }: { stripeUrl?: string }) => (
     <Link to="/percorsi" className="block">
       <Button variant="cta" size="lg" className="w-full">
         Prenota un colloquio <ArrowRight className="w-4 h-4 ml-1" />
+      </Button>
+    </Link>
+  </div>
+);
+
+// Stato 1b: utente arrivato da Funnel V2 — mostra percorso suggerito
+const LEVEL_LABEL: Record<string, string> = { basso: "Lieve", medio: "Moderato", alto: "Elevato" };
+const LEVEL_COLOR: Record<string, string> = { basso: "text-emerald-600", medio: "text-amber-600", alto: "text-red-600" };
+const ADDICTION_SHORT: Record<string, string> = {
+  alcol: "Alcol", "crack-cocaina": "Crack/Cocaina", ludopatia: "Ludopatia",
+  oppiacei: "Oppiacei", cannabis: "Cannabis", "sesso-pornografia": "Sesso/Porno",
+  famiglie: "Supporto Famiglie",
+};
+
+const StatePercorsoSuggerito = ({ result }: { result: { dipendenza: string; score: number; level: string } }) => (
+  <div className="glass-card rounded-2xl p-4 border border-primary/20 bg-primary/5 space-y-3">
+    <span className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wider">
+      Percorso suggerito
+    </span>
+    <div className="flex items-center gap-3">
+      <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+        <MapPin className="w-5 h-5 text-primary" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-foreground">
+          {ADDICTION_SHORT[result.dipendenza] || result.dipendenza}
+        </p>
+        <p className="text-[11px] text-muted-foreground">
+          Livello: <span className={`font-bold ${LEVEL_COLOR[result.level] || ""}`}>
+            {LEVEL_LABEL[result.level] || result.level}
+          </span>
+          {" "}· Score {result.score}
+        </p>
+      </div>
+    </div>
+    <Link to="/percorso/suggerito" className="block">
+      <Button variant="cta" size="lg" className="w-full">
+        Vedi il tuo percorso <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
     </Link>
   </div>
@@ -184,6 +295,16 @@ const PercorsoShowcase = ({ cleanDays, config }: {
 
   const stripePercorso = userState?.percorso_duration === '12m' ? stripe12m : stripe6m;
 
+  const pendingAppt = (() => {
+    try { return JSON.parse(localStorage.getItem("sw_pending_appointment") || "null"); }
+    catch { return null; }
+  })();
+
+  const v2Result = (() => {
+    try { return JSON.parse(localStorage.getItem("sw_v2_result") || "null"); }
+    catch { return null; }
+  })();
+
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2 px-1">
@@ -191,19 +312,21 @@ const PercorsoShowcase = ({ cleanDays, config }: {
         <h2 className="text-base font-bold text-foreground">Il mio percorso</h2>
       </div>
 
-      {!userState?.first_colloquio_done && (
-        <StateSenzaPercorso stripeUrl={stripeColloquio} />
-      )}
-      {userState?.first_colloquio_done && !userState?.percorso_active && (
+      {pendingAppt ? (
+        <StateAppuntamentoPendente appt={pendingAppt} />
+      ) : userState?.percorso_active ? (
+        <StatePercorsoAttivo cleanDays={cleanDays} />
+      ) : userState?.first_colloquio_done ? (
         <StateDopoColloquio
           level={userState.percorso_level}
           duration={userState.percorso_duration}
           percorsoType={userState.percorso_type}
           stripeUrl={stripePercorso}
         />
-      )}
-      {userState?.percorso_active && (
-        <StatePercorsoAttivo cleanDays={cleanDays} />
+      ) : v2Result ? (
+        <StatePercorsoSuggerito result={v2Result} />
+      ) : (
+        <StateSenzaPercorso stripeUrl={stripeColloquio} />
       )}
     </section>
   );

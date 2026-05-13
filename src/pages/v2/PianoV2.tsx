@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Check, ArrowRight, ShieldCheck, Users, Clock, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -90,6 +90,7 @@ const PLANS = [
 
 export default function PianoV2() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const funnel = (() => { try { return JSON.parse(sessionStorage.getItem("sw_funnel") || "{}"); } catch { return {}; } })();
   const level: "basso" | "medio" | "alto" = funnel.level || "medio";
 
@@ -98,6 +99,15 @@ export default function PianoV2() {
 
   useEffect(() => {
     trackPage("piano_v2", { dipendenza: id, level });
+    // Persisti il risultato V2 in localStorage (sopravvive al login/redirect)
+    if (funnel.dipendenza) {
+      localStorage.setItem("sw_v2_result", JSON.stringify({
+        dipendenza: funnel.dipendenza,
+        score: funnel.score,
+        level: funnel.level,
+        timestamp: Date.now(),
+      }));
+    }
   }, []);
 
   const handleStripe = (planKey: string, billing: "mensile" | "annuale", url: string) => {
@@ -108,9 +118,10 @@ export default function PianoV2() {
     window.location.href = url;
   };
 
+  // "Entra in app" → pagina accesso/registrazione V2
   const handleAppLogin = () => {
     trackEvent("piano_v2_app_click", "piano_v2", { dipendenza: id, level });
-    window.open(APP_LOGIN, "_blank");
+    navigate(`/v2/${id}/accesso`);
   };
 
   return (
@@ -243,9 +254,9 @@ export default function PianoV2() {
           </div>
         </div>
 
-        {/* Già utente */}
-        <div className="text-center pt-2 pb-6">
-          <p className="text-xs text-muted-foreground mb-2">Hai già un account StandUpWay?</p>
+        {/* Entra senza pagare */}
+        <div className="rounded-2xl border border-border/40 bg-surface-1 p-4 text-center space-y-2 pb-6">
+          <p className="text-xs text-muted-foreground">Vuoi prima esplorare l'app gratuitamente?</p>
           <button
             onClick={handleAppLogin}
             className="text-sm font-semibold text-primary underline underline-offset-2 hover:opacity-80 transition-opacity"
