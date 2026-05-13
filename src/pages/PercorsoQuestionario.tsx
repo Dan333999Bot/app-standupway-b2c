@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { trackFunnel, trackEvent } from "@/lib/analytics";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
+import { trackFunnel as trackFunnelMain, trackEvent as trackEventMain } from "@/lib/analytics";
+import { trackFunnel as trackFunnelV2, trackEvent as trackEventV2 } from "@/lib/analyticsV2";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { ArrowLeft, ArrowRight, Heart, Phone, Sparkles, Wind, BookOpen, Users, Home as HomeIcon, Clock, ShieldCheck, Lock, CalendarCheck } from "lucide-react";
@@ -202,6 +203,11 @@ const TITLES: Record<string, string> = {
 const PercorsoQuestionario = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isV2 = location.pathname.startsWith('/v2/');
+  const trackFunnel = isV2 ? trackFunnelV2 : trackFunnelMain;
+  const trackEvent = isV2 ? trackEventV2 : trackEventMain;
+  const basePath = isV2 ? '/v2' : '/percorsi';
   const steps = useMemo<Step[]>(() => {
     const intro: Step = {
       kind: "feedback",
@@ -244,7 +250,7 @@ const PercorsoQuestionario = () => {
   const step = steps[i];
 
   if (isEnd) {
-    const level = score >= 12 ? "alto" : score >= 6 ? "medio" : "basso";
+    const level = score >= 25 ? "alto" : score >= 19 ? "medio" : "basso";
     // Salva dati funnel in sessionStorage per le pagine successive
     sessionStorage.setItem("sw_funnel", JSON.stringify({ dipendenza: id, score, level }));
     const config = {
@@ -293,8 +299,8 @@ const PercorsoQuestionario = () => {
           </div>
 
           <div className="space-y-2.5">
-            <Button asChild size="lg" className="w-full h-14 text-base font-semibold" onClick={() => trackEvent("questionario_book_colloquio", "percorso_questionario", { percorso: id, score, level: score >= 12 ? "alto" : score >= 6 ? "medio" : "basso" })}>
-              <Link to={user ? "/prenota" : "/prenota/calendario"}>
+            <Button asChild size="lg" className="w-full h-14 text-base font-semibold" onClick={() => trackEvent("questionario_book_colloquio", "percorso_questionario", { percorso: id, score, level: score >= 25 ? "alto" : score >= 19 ? "medio" : "basso" })}>
+              <Link to={`${basePath}/${id}/risultato`}>
                 <CalendarCheck className="w-5 h-5 mr-2" /> Prenota il colloquio · 49€
               </Link>
             </Button>
@@ -355,9 +361,18 @@ const PercorsoQuestionario = () => {
     setI(newI);
 
     if (newI >= steps.length) {
-      const level = newScore >= 12 ? "alto" : newScore >= 6 ? "medio" : "basso";
+      const level = newScore >= 25 ? "alto" : newScore >= 19 ? "medio" : "basso";
       trackFunnel(id || "questionario", "complete", { score: newScore, level, percorso: id, time_s: Math.round((Date.now() - startRef.current) / 1000) });
       const maxScore = steps.filter(s => s.kind === "question").length * 3;
+      // Write to events table (always works) for admin visibility
+      trackEvent("questionnaire_complete", "questionario", {
+        addiction_type: id,
+        score: newScore,
+        max_score: maxScore,
+        result_level: level,
+        percorso: id,
+      });
+      // Best-effort insert into questionnaire_responses (may fail due to RLS)
       supabase.from("questionnaire_responses").insert({
         user_id: localStorage.getItem("sw_user_id"),
         addiction_type: id,
@@ -369,10 +384,10 @@ const PercorsoQuestionario = () => {
         else console.log("[SW] questionnaire saved ok");
       });
 
-      // Utente non loggato: salta la pagina risultato, vai diretto al calendario
+      // Tutti gli utenti (auth e anon) vanno alla pagina risultato
       if (!user) {
         sessionStorage.setItem("sw_funnel", JSON.stringify({ dipendenza: id, score: newScore, level }));
-        navigate("/prenota/calendario");
+        navigate(`${basePath}/${id}/risultato`);
         return;
       }
     }

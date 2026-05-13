@@ -6,6 +6,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+// Funnel V2
+import PercorsiV2 from "./pages/v2/PercorsiV2";
+import RisultatoV2 from "./pages/v2/RisultatoV2";
+import PianoV2 from "./pages/v2/PianoV2";
+
 // Pagine pubbliche (no auth)
 import Login from "./pages/Login";
 import Percorsi from "./pages/Percorsi";
@@ -14,6 +19,9 @@ import PercorsoQuestionario from "./pages/PercorsoQuestionario";
 import PrenotaCalendario from "./pages/PrenotaCalendario";
 import PrenotaRegistrazione from "./pages/PrenotaRegistrazione";
 import PrenotaVerifica from "./pages/PrenotaVerifica";
+import PercorsoRisultato from "./pages/PercorsoRisultato";
+import PrenotaProfessionista from "./pages/PrenotaProfessionista";
+import PrenotaBenvenuto from "./pages/PrenotaBenvenuto";
 import Installa from "./pages/Installa";
 import Invita from "./pages/Invita";
 import NotFound from "./pages/NotFound";
@@ -70,14 +78,23 @@ const App = () => (
             <Route path="/diario" element={<Navigate to="/percorso/diario" replace />} />
             <Route path="/eventi" element={<Navigate to="/community" replace />} />
 
+            {/* ── FUNNEL V2 — pubblico, analytics separata ── */}
+            <Route path="/v2" element={<PercorsiV2 />} />
+            <Route path="/v2/:id/questionario" element={<PercorsoQuestionario />} />
+            <Route path="/v2/:id/risultato" element={<RisultatoV2 />} />
+            <Route path="/v2/:id/piano" element={<PianoV2 />} />
+
             {/* ── ZONA PUBBLICA — nessun login richiesto ── */}
             <Route path="/login" element={<Login />} />
             <Route path="/percorsi" element={<Percorsi />} />
             <Route path="/percorsi/:id" element={<PercorsoDetail />} />
             <Route path="/percorsi/:id/questionario" element={<PercorsoQuestionario />} />
+            <Route path="/percorsi/:id/risultato" element={<PercorsoRisultato />} />
+            <Route path="/prenota/professionista" element={<PrenotaProfessionista />} />
             <Route path="/prenota/calendario" element={<PrenotaCalendario />} />
             <Route path="/prenota/registrazione" element={<PrenotaRegistrazione />} />
             <Route path="/prenota/verifica" element={<PrenotaVerifica />} />
+            <Route path="/prenota/benvenuto" element={<PrenotaBenvenuto />} />
             <Route path="/installa" element={<Installa />} />
             <Route path="/invita" element={<Invita />} />
 
