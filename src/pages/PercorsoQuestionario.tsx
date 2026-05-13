@@ -241,9 +241,16 @@ const PercorsoQuestionario = () => {
   }, []);
 
   // Quando finiscono le domande: risultato per utenti loggati, calendario per anonimi
+  // In V2: sempre navigate a risultato V2, indipendentemente dall'auth
   useEffect(() => {
     if (phase === "questions" && i >= steps.length && user) {
-      setPhase("result");
+      if (isV2) {
+        const lvl = score >= 25 ? "alto" : score >= 19 ? "medio" : "basso";
+        sessionStorage.setItem("sw_funnel", JSON.stringify({ dipendenza: id, score, level: lvl }));
+        navigate(`${basePath}/${id}/risultato`);
+      } else {
+        setPhase("result");
+      }
     }
   }, [phase, i, steps.length, user]);
 
