@@ -1,17 +1,32 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Home, CalendarDays, Loader2 } from "lucide-react";
+import { CheckCircle2, Home, CalendarDays, Loader2, ExternalLink } from "lucide-react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { trackEvent as trackEventV2 } from "@/lib/analyticsV2";
+
+const APP_LOGIN = "https://app.metodostandup.it/login";
 
 const Thankyou = () => {
   usePageTracking("thankyou");
   const [unlocked, setUnlocked] = useState(false);
 
+  // Detect if user came from V2 funnel
+  const checkoutSource = sessionStorage.getItem("sw_checkout_source");
+  const checkoutPlan = sessionStorage.getItem("sw_checkout_plan");
+  const isV2 = checkoutSource === "v2";
+
   useEffect(() => {
     localStorage.setItem("sw_first_colloquio_done", "true");
     setUnlocked(true);
+
+    // V2: traccia conversione su funnel_v2_events e pulisci flag
+    if (isV2) {
+      trackEventV2("conversione_stripe", "thankyou", { plan: checkoutPlan || "unknown" });
+      sessionStorage.removeItem("sw_checkout_source");
+      sessionStorage.removeItem("sw_checkout_plan");
+    }
 
     const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
@@ -73,29 +88,43 @@ const Thankyou = () => {
           <div className="space-y-2 max-w-xs">
             <h1 className="text-2xl font-bold text-foreground">Pagamento confermato!</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Il tuo primo colloquio è prenotato. Riceverai una conferma via email con tutti i dettagli.
+              Il tuo percorso è attivo. Riceverai una conferma via email con tutti i dettagli.
             </p>
           </div>
 
           <div className="w-full max-w-xs rounded-2xl bg-primary/5 border border-primary/20 p-4 text-left space-y-1.5">
             <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Cosa succede adesso</p>
             <p className="text-xs text-foreground/80 leading-relaxed">
-              Il tuo professionista ti contatterà per confermare il giorno e l'orario. La sezione <strong>Agenda</strong> è ora sbloccata — trovi tutto in "Il mio percorso".
+              {isV2
+                ? "Il tuo professionista ti contatterà entro 24h. Accedi all'app per iniziare il percorso."
+                : "Il tuo professionista ti contatterà per confermare il giorno e l'orario. La sezione Agenda è ora sbloccata."}
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 w-full max-w-xs">
-            <Button asChild size="lg" className="w-full">
-              <Link to="/percorso/visite">
-                <CalendarDays className="w-4 h-4 mr-2" /> Vai all'agenda
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="w-full">
-              <Link to="/home">
-                <Home className="w-4 h-4 mr-2" /> Torna alla home
-              </Link>
-            </Button>
-          </div>
+          {isV2 ? (
+            /* CTA per utenti V2 (non necessariamente loggati) */
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <Button asChild size="lg" className="w-full">
+                <a href={APP_LOGIN}>
+                  <ExternalLink className="w-4 h-4 mr-2" /> Entra nell'app
+                </a>
+              </Button>
+            </div>
+          ) : (
+            /* CTA per utenti V1 (loggati) */
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <Button asChild size="lg" className="w-full">
+                <Link to="/percorso/visite">
+                  <CalendarDays className="w-4 h-4 mr-2" /> Vai all'agenda
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full">
+                <Link to="/home">
+                  <Home className="w-4 h-4 mr-2" /> Torna alla home
+                </Link>
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

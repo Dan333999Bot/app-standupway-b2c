@@ -102,6 +102,9 @@ export default function PianoV2() {
 
   const handleStripe = (planKey: string, billing: "mensile" | "annuale", url: string) => {
     trackEvent("piano_v2_stripe_click", "piano_v2", { plan: planKey, billing, dipendenza: id, level });
+    // Flag per Thankyou.tsx: sa che viene da V2 e traccia su funnel_v2_events
+    sessionStorage.setItem("sw_checkout_source", "v2");
+    sessionStorage.setItem("sw_checkout_plan", planKey);
     window.location.href = url;
   };
 
