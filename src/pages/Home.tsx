@@ -331,10 +331,12 @@ const PercorsoShowcase = ({ cleanDays, config }: {
         <h2 className="text-base font-bold text-foreground">Il mio percorso</h2>
       </div>
 
-      {pendingAppt ? (
-        <StateAppuntamentoPendente appt={pendingAppt} />
-      ) : userState?.percorso_active ? (
+      {userState?.percorso_active ? (
         <StatePercorsoAttivo cleanDays={cleanDays} />
+      ) : v2Result ? (
+        <StatePercorsoSuggerito result={v2Result} />
+      ) : pendingAppt ? (
+        <StateAppuntamentoPendente appt={pendingAppt} />
       ) : userState?.first_colloquio_done ? (
         <StateDopoColloquio
           level={userState.percorso_level}
@@ -342,8 +344,6 @@ const PercorsoShowcase = ({ cleanDays, config }: {
           percorsoType={userState.percorso_type}
           stripeUrl={stripePercorso}
         />
-      ) : v2Result ? (
-        <StatePercorsoSuggerito result={v2Result} />
       ) : (
         <StateSenzaPercorso stripeUrl={stripeColloquio} />
       )}
