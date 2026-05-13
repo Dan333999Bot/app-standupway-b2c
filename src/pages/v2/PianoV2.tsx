@@ -7,7 +7,8 @@ import { trackPage, trackEvent } from "@/lib/analyticsV2";
 
 /* ─── Stripe links (sostituisci con i link reali) ─────────────────── */
 const STRIPE = {
-  individuale_mensile: "https://buy.stripe.com/INDIVIDUALE",
+  gruppi_solo_mensile: "https://buy.stripe.com/GRUPPI_SOLO_MENSILE",
+  gruppi_solo_annuale: "https://buy.stripe.com/GRUPPI_SOLO_ANNUALE",
   gruppi_mensile:      "https://buy.stripe.com/GRUPPI_MENSILE",
   gruppi_annuale:      "https://buy.stripe.com/GRUPPI_ANNUALE",
   completo_mensile:    "https://buy.stripe.com/COMPLETO_MENSILE",
@@ -19,25 +20,26 @@ const APP_LOGIN = "https://app.metodostandup.it/login";
 /* ─── Piani ──────────────────────────────────────────────────────── */
 const PLANS = [
   {
-    key: "individuale",
+    key: "gruppi_solo",
     level: "basso",
     badge: "Lieve",
-    name: "Individuale",
-    tagline: "Il primo passo, guidato da un professionista",
-    priceLabel: "49€",
-    period: "/ settimana",
-    annualLabel: null,
+    name: "Solo Gruppi",
+    tagline: "Gruppi terapeutici illimitati online con la community",
+    priceLabel: "97€",
+    period: "/ mese",
+    annualLabel: "oppure 970€/anno (risparmia 194€)",
     color: "border-emerald-500/40",
     badgeBg: "bg-emerald-500/10 text-emerald-600",
     ctaColor: "bg-red-600 hover:bg-red-700 text-white",
     features: [
-      "Sessioni individuali con psicologo specializzato",
-      "Piano personalizzato settimana per settimana",
+      "Gruppi terapeutici online (illimitati)",
       "Accesso all'app StandUpWay",
-      "Materiali di supporto tra le sessioni",
+      "Community 20.000+ persone",
+      "Educatori e coach pari certificati",
       "Segreto professionale garantito",
     ],
-    stripeMonthly: STRIPE.individuale_mensile,
+    stripeMonthly: STRIPE.gruppi_solo_mensile,
+    stripeAnnual: STRIPE.gruppi_solo_annuale,
   },
   {
     key: "gruppi",

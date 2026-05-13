@@ -157,7 +157,7 @@ const StatePercorsoSuggerito = ({ result }: { result: { dipendenza: string; scor
     <span className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wider">
       Percorso suggerito
     </span>
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 pb-3 border-b border-border/30">
       <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
         <MapPin className="w-5 h-5 text-primary" />
       </div>
@@ -173,9 +173,28 @@ const StatePercorsoSuggerito = ({ result }: { result: { dipendenza: string; scor
         </p>
       </div>
     </div>
-    <Link to="/percorso/suggerito" className="block">
+    <div className="grid grid-cols-4 gap-2">
+      <Link to={`/v2/${result.dipendenza}/piano`} className="rounded-xl p-2.5 text-center bg-primary/10 border border-primary/30">
+        <MapPin className="w-4 h-4 text-primary mx-auto" />
+        <p className="text-[10px] text-foreground font-semibold mt-1 leading-tight">Suggerito</p>
+      </Link>
+      {[
+        { icon: CalendarIcon, label: "Agenda" },
+        { icon: Target,       label: "Obiettivi" },
+        { icon: BookOpen,     label: "Diario" },
+      ].map((l) => (
+        <div key={l.label} className="relative rounded-xl p-2.5 text-center bg-secondary/40 border border-border/40">
+          <l.icon className="w-4 h-4 text-muted-foreground/60 mx-auto" />
+          <p className="text-[10px] text-muted-foreground/70 font-medium mt-1">{l.label}</p>
+          <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/80 flex items-center justify-center">
+            <Lock className="w-2.5 h-2.5 text-background" />
+          </div>
+        </div>
+      ))}
+    </div>
+    <Link to="/percorsi" className="block">
       <Button variant="cta" size="lg" className="w-full">
-        Vedi il tuo percorso <ArrowRight className="w-4 h-4 ml-1" />
+        Prenota un colloquio <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
     </Link>
   </div>
