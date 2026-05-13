@@ -47,6 +47,8 @@ export default function PrenotaBenvenuto() {
 
     if (stripeUrl) {
       trackEvent("prenota_paga_click", "prenota_benvenuto");
+      // Flag per Thankyou.tsx: sa che viene da checkout V1
+      sessionStorage.setItem("sw_checkout_source", "v1");
       window.location.href = stripeUrl;
     } else {
       setError("Errore: URL pagamento non disponibile. Riprova.");

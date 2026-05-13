@@ -4,28 +4,34 @@ import { CheckCircle2, Home, CalendarDays, Loader2, ExternalLink } from "lucide-
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { trackEvent as trackEventMain } from "@/lib/analytics";
 import { trackEvent as trackEventV2 } from "@/lib/analyticsV2";
 
 const APP_LOGIN = "https://app.metodostandup.it/login";
 
 const Thankyou = () => {
-  usePageTracking("thankyou");
+  usePageTracking("thankyou"); // screen_view generico, NON usato per contare conversioni
   const [unlocked, setUnlocked] = useState(false);
 
-  // Detect if user came from V2 funnel
+  // Detect se viene da checkout reale (flag impostato da PrenotaBenvenuto/PianoV2 prima del redirect Stripe)
   const checkoutSource = sessionStorage.getItem("sw_checkout_source");
   const checkoutPlan = sessionStorage.getItem("sw_checkout_plan");
   const isV2 = checkoutSource === "v2";
+  const isV1 = checkoutSource === "v1";
 
   useEffect(() => {
     localStorage.setItem("sw_first_colloquio_done", "true");
     setUnlocked(true);
 
-    // V2: traccia conversione su funnel_v2_events e pulisci flag
     if (isV2) {
+      // V2: traccia su funnel_v2_events
       trackEventV2("conversione_stripe", "thankyou", { plan: checkoutPlan || "unknown" });
       sessionStorage.removeItem("sw_checkout_source");
       sessionStorage.removeItem("sw_checkout_plan");
+    } else if (isV1) {
+      // V1: traccia su events table con evento dedicato (non screen_view)
+      trackEventMain("conversione_v1", "thankyou", { source: "prenota_benvenuto" });
+      sessionStorage.removeItem("sw_checkout_source");
     }
 
     const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2)}`;
