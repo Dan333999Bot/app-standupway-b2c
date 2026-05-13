@@ -1,19 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Check, ArrowRight, ShieldCheck, Users, Clock, Zap, Star } from "lucide-react";
+import { Check, ArrowRight, ShieldCheck, Clock, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { trackPage, trackEvent } from "@/lib/analyticsV2";
-
-/* ─── Stripe links (sostituisci con i link reali) ─────────────────── */
-const STRIPE = {
-  gruppi_solo_mensile: "https://buy.stripe.com/GRUPPI_SOLO_MENSILE",
-  gruppi_solo_annuale: "https://buy.stripe.com/GRUPPI_SOLO_ANNUALE",
-  gruppi_mensile:      "https://buy.stripe.com/GRUPPI_MENSILE",
-  gruppi_annuale:      "https://buy.stripe.com/GRUPPI_ANNUALE",
-  completo_mensile:    "https://buy.stripe.com/COMPLETO_MENSILE",
-  completo_annuale:    "https://buy.stripe.com/COMPLETO_ANNUALE",
-};
+import { useAppConfig } from "@/hooks/useAppConfig";
 
 const APP_LOGIN = "https://app.metodostandup.it/login";
 
@@ -38,8 +29,8 @@ const PLANS = [
       "Educatori e coach pari certificati",
       "Segreto professionale garantito",
     ],
-    stripeMonthly: STRIPE.gruppi_solo_mensile,
-    stripeAnnual: STRIPE.gruppi_solo_annuale,
+    configMonthly: "stripe_v2_gruppi_solo_mensile_url",
+    configAnnual:  "stripe_v2_gruppi_solo_annuale_url",
   },
   {
     key: "gruppi",
@@ -61,8 +52,8 @@ const PLANS = [
       "Educatori e coach pari certificati",
       "Segreto professionale garantito",
     ],
-    stripeMonthly: STRIPE.gruppi_mensile,
-    stripeAnnual: STRIPE.gruppi_annuale,
+    configMonthly: "stripe_v2_gruppi_mensile_url",
+    configAnnual:  "stripe_v2_gruppi_annuale_url",
   },
   {
     key: "completo",
@@ -85,14 +76,15 @@ const PLANS = [
       "Case manager dedicato",
       "Segreto professionale garantito",
     ],
-    stripeMonthly: STRIPE.completo_mensile,
-    stripeAnnual: STRIPE.completo_annuale,
+    configMonthly: "stripe_v2_completo_mensile_url",
+    configAnnual:  "stripe_v2_completo_annuale_url",
   },
 ];
 
 export default function PianoV2() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const config = useAppConfig();
   const funnel = (() => { try { return JSON.parse(sessionStorage.getItem("sw_funnel") || "{}"); } catch { return {}; } })();
   const level: "basso" | "medio" | "alto" = funnel.level || "medio";
 
@@ -112,11 +104,14 @@ export default function PianoV2() {
     }
   }, []);
 
-  const handleStripe = (planKey: string, billing: "mensile" | "annuale", url: string) => {
-    trackEvent("piano_v2_stripe_click", "piano_v2", { plan: planKey, billing, dipendenza: id, level });
-    // Flag per Thankyou.tsx: sa che viene da V2 e traccia su funnel_v2_events
+  const handleStripe = (plan: typeof PLANS[number], isAnnual: boolean) => {
+    const urlKey = isAnnual ? plan.configAnnual : plan.configMonthly;
+    const url = config[urlKey];
+    if (!url) return;
+    const billing = isAnnual ? "annuale" : "mensile";
+    trackEvent("piano_v2_stripe_click", "piano_v2", { plan: plan.key, billing, dipendenza: id, level });
     sessionStorage.setItem("sw_checkout_source", "v2");
-    sessionStorage.setItem("sw_checkout_plan", planKey);
+    sessionStorage.setItem("sw_checkout_plan", plan.key);
     window.location.href = url;
   };
 
@@ -222,13 +217,10 @@ export default function PianoV2() {
 
               {/* CTA Stripe */}
               <button
-                onClick={() => handleStripe(
-                  plan.key,
-                  isAnnual ? "annuale" : "mensile",
-                  (isAnnual && plan.stripeAnnual) ? plan.stripeAnnual : plan.stripeMonthly
-                )}
+                onClick={() => handleStripe(plan, isAnnual)}
+                disabled={!config[isAnnual ? plan.configAnnual : plan.configMonthly]}
                 className={cn(
-                  "w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors",
+                  "w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
                   plan.ctaColor
                 )}
               >
