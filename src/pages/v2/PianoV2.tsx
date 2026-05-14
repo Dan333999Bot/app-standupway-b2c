@@ -86,7 +86,7 @@ const PLANS_FAMIGLIE = [
   {
     key: "famiglie_colloquio",
     level: "basso",
-    badge: "Gestibile",
+    badge: "Lieve",
     name: "Colloquio Singolo",
     tagline: "Parla con uno specialista e ottieni subito strumenti pratici",
     priceLabel: "49€",
@@ -107,7 +107,7 @@ const PLANS_FAMIGLIE = [
   {
     key: "famiglie_gruppi",
     level: "medio",
-    badge: "Impattante",
+    badge: "Moderato",
     name: "Gruppi Famiglie",
     tagline: "Supporto continuo con chi vive la tua stessa situazione",
     priceLabel: "97€",
@@ -129,7 +129,7 @@ const PLANS_FAMIGLIE = [
   {
     key: "famiglie_completo",
     level: "alto",
-    badge: "Critica",
+    badge: "Grave",
     name: "Colloquio + Gruppi",
     tagline: "Supporto intensivo: un professionista dedicato e i gruppi",
     priceLabel: "297€",
