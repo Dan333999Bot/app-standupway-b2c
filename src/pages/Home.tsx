@@ -135,7 +135,7 @@ const StateSenzaPercorso = ({ stripeUrl }: { stripeUrl?: string }) => (
         </div>
       ))}
     </div>
-    <Link to="/percorsi" className="block">
+    <Link to="/prenota/professionista" className="block">
       <Button variant="cta" size="lg" className="w-full">
         Prenota un colloquio <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
@@ -192,7 +192,7 @@ const StatePercorsoSuggerito = ({ result }: { result: { dipendenza: string; scor
         </div>
       ))}
     </div>
-    <Link to="/percorsi" className="block">
+    <Link to="/prenota/professionista" className="block">
       <Button variant="cta" size="lg" className="w-full">
         Prenota un colloquio <ArrowRight className="w-4 h-4 ml-1" />
       </Button>
