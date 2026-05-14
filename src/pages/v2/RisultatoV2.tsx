@@ -17,6 +17,12 @@ const LEVEL_CONFIG = {
   alto:  { label: "Elevato",  color: "#ef4444", bg: "bg-red-500/10",     border: "border-red-500/30",     pct: 88 },
 };
 
+const FAMIGLIE_LEVEL_CONFIG = {
+  basso: { label: "Gestibile",  sublabel: "Hai ancora spazio per agire — con gli strumenti giusti puoi fare molto", color: "#10b981", bg: "bg-emerald-500/10", border: "border-emerald-500/30", pct: 25 },
+  medio: { label: "Impattante", sublabel: "La situazione sta pesando su di te e sulle relazioni familiari",          color: "#f59e0b", bg: "bg-amber-500/10",   border: "border-amber-500/30",   pct: 60 },
+  alto:  { label: "Critica",    sublabel: "La situazione richiede un supporto professionale urgente",               color: "#ef4444", bg: "bg-red-500/10",     border: "border-red-500/30",     pct: 88 },
+};
+
 const ADVICE: Record<string, Record<string, string[]>> = {
   alcol: {
     basso: ["Monitora la frequenza e le quantità nel tempo", "Riconosci i contesti che aumentano il consumo", "Un confronto con un professionista può darti strumenti pratici"],
@@ -49,9 +55,21 @@ const ADVICE: Record<string, Record<string, string[]>> = {
     alto:  ["Queste dinamiche raramente si risolvono con la sola forza di volontà", "I nostri professionisti trattano questo con un approccio specifico e riservato", "Il momento di agire è adesso"],
   },
   famiglie: {
-    basso: ["Vivere vicino a una persona con dipendenza è logorante", "Prendersi cura di sé non è egoismo — è necessario per aiutare davvero", "Un confronto con un professionista può darti strumenti concreti"],
-    medio: ["C'è un impatto significativo sulla tua vita quotidiana e sulle relazioni", "I familiari spesso sviluppano dinamiche di codipendenza senza rendersene conto", "Un supporto specializzato per i familiari è diverso ed altrettanto necessario"],
-    alto:  ["La situazione che descrivi è seria e richiede un supporto professionale", "Non devi gestire questo da solo/a", "I nostri professionisti lavorano specificamente con i familiari"],
+    basso: [
+      "Stai cercando il modo giusto per parlargli/le senza che si chiuda o si arrabbi — è la domanda giusta da farsi",
+      "Le tecniche di comunicazione motivazionale fanno la differenza: poche parole, usate nel momento giusto, possono avvicinare chi sembra irraggiungibile",
+      "Un colloquio con uno specialista ti dà subito strumenti pratici da usare nelle prossime conversazioni",
+    ],
+    medio: [
+      "Sei stanco/a di discutere, di sperare senza risultati, di sentirti ignorato/a ogni volta che provi ad aiutare",
+      "Esistono metodi clinicamente validati — come il CRAFT — per motivare chi non vuole ancora chiedere aiuto: funzionano, e si imparano",
+      "I gruppi di supporto per famiglie ti mettono in contatto con chi vive la stessa situazione: non sei solo/a, e non devi trovare da solo/a la soluzione",
+    ],
+    alto: [
+      "La situazione è fuori controllo e ti senti impotente: è normale, e non è colpa tua",
+      "In questi casi serve un approccio combinato — supporto professionale per te e una strategia concreta per avvicinare il tuo familiare al cambiamento",
+      "I nostri professionisti lavorano specificamente con i familiari usando metodi strutturati: ti aiutano a capire cosa fare, cosa evitare e come comunicare in modo efficace",
+    ],
   },
 };
 
@@ -65,7 +83,8 @@ export default function RisultatoV2() {
   const level: "basso" | "medio" | "alto" = funnel.level || "medio";
   const score: number = funnel.score ?? 0;
   const dipendenza = id || funnel.dipendenza || "dipendenza";
-  const lvl = LEVEL_CONFIG[level];
+  const isFamiglie = dipendenza === "famiglie";
+  const lvl = isFamiglie ? FAMIGLIE_LEVEL_CONFIG[level] : LEVEL_CONFIG[level];
   const advice = ADVICE[dipendenza]?.[level] || ADVICE["alcol"][level];
   const addLabel = ADDICTION_LABEL[dipendenza] || dipendenza;
 
@@ -110,9 +129,14 @@ export default function RisultatoV2() {
         <div className={cn("rounded-2xl border p-5 space-y-4", lvl.bg, lvl.border)}>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Livello di rischio rilevato</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                {isFamiglie ? "Situazione familiare rilevata" : "Livello di rischio rilevato"}
+              </p>
               <p className="text-2xl font-black" style={{ color: lvl.color }}>{lvl.label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Dipendenza da {addLabel}</p>
+              {isFamiglie
+                ? <p className="text-xs text-muted-foreground mt-0.5 leading-snug max-w-[200px]">{(lvl as typeof FAMIGLIE_LEVEL_CONFIG[keyof typeof FAMIGLIE_LEVEL_CONFIG]).sublabel}</p>
+                : <p className="text-xs text-muted-foreground mt-0.5">Dipendenza da {addLabel}</p>
+              }
             </div>
             <div className="text-right">
               <p className="text-3xl font-black text-foreground">{score}</p>
@@ -125,14 +149,19 @@ export default function RisultatoV2() {
           <div className="flex items-start gap-2 bg-background/60 rounded-xl p-3">
             <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Questa è un'analisi <strong>approssimativa</strong> basata sulle tue risposte. Non sostituisce una diagnosi clinica.
+              {isFamiglie
+                ? "Questa analisi si basa sulle tue risposte e non sostituisce una valutazione professionale."
+                : <>Questa è un'analisi <strong>approssimativa</strong> basata sulle tue risposte. Non sostituisce una diagnosi clinica.</>
+              }
             </p>
           </div>
         </div>
 
         {/* Consigli */}
         <div className="rounded-2xl border border-border/40 bg-surface-1 p-5 space-y-3">
-          <p className="text-sm font-bold text-foreground">Cosa emerge dalla tua situazione</p>
+          <p className="text-sm font-bold text-foreground">
+            {isFamiglie ? "Cosa puoi fare concretamente" : "Cosa emerge dalla tua situazione"}
+          </p>
           <div className="space-y-2.5">
             {advice.map((tip, i) => (
               <div key={i} className="flex items-start gap-2.5">
@@ -147,13 +176,19 @@ export default function RisultatoV2() {
 
         {/* Approccio */}
         <div className="rounded-2xl border border-border/40 bg-surface-1 p-5 space-y-4">
-          <p className="text-sm font-bold text-foreground">Come lavoriamo con te</p>
+          <p className="text-sm font-bold text-foreground">
+            {isFamiglie ? "Come lavoriamo con te e la tua famiglia" : "Come lavoriamo con te"}
+          </p>
           <div className="space-y-3">
-            {[
+            {(isFamiglie ? [
+              { icon: Users,      text: "Gruppi riservati ai familiari: un luogo sicuro dove confrontarsi con chi vive la tua stessa situazione" },
+              { icon: Smartphone, text: "Metodo CRAFT e tecniche di comunicazione motivazionale — strumenti pratici che funzionano anche quando il familiare rifiuta aiuto" },
+              { icon: ShieldCheck, text: "Segreto professionale garantito — quello che condividi non esce dal percorso" },
+            ] : [
               { icon: Smartphone, text: "100% online via app — segui il percorso dal tuo telefono, dove e quando vuoi" },
               { icon: Users, text: "Professionisti multidisciplinari: psicologi, educatori, coach pari che hanno vissuto la dipendenza in prima persona" },
               { icon: ShieldCheck, text: "Segreto professionale garantito — quello che condividi non esce dal percorso" },
-            ].map(({ icon: Icon, text }, i) => (
+            ]).map(({ icon: Icon, text }, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Icon className="w-4 h-4 text-primary" />

@@ -81,12 +81,84 @@ const PLANS = [
   },
 ];
 
+/* ─── Piani famiglie ─────────────────────────────────────────────── */
+const PLANS_FAMIGLIE = [
+  {
+    key: "famiglie_colloquio",
+    level: "basso",
+    badge: "Gestibile",
+    name: "Colloquio Singolo",
+    tagline: "Parla con uno specialista e ottieni subito strumenti pratici",
+    priceLabel: "49€",
+    period: "una tantum",
+    annualLabel: null,
+    color: "border-emerald-500/40",
+    badgeBg: "bg-emerald-500/10 text-emerald-600",
+    ctaColor: "bg-red-600 hover:bg-red-700 text-white",
+    features: [
+      "Colloquio 1:1 di 30 min con uno specialista in dipendenze",
+      "Strumenti di comunicazione motivazionale",
+      "Come rispondere senza alimentare conflitti",
+      "Indicazioni pratiche per il passo successivo",
+      "Segreto professionale garantito",
+    ],
+    configMonthly: "stripe_colloquio_url",
+  },
+  {
+    key: "famiglie_gruppi",
+    level: "medio",
+    badge: "Impattante",
+    name: "Gruppi Famiglie",
+    tagline: "Supporto continuo con chi vive la tua stessa situazione",
+    priceLabel: "97€",
+    period: "/ mese",
+    annualLabel: "oppure 970€/anno (risparmia 194€)",
+    color: "border-amber-500/40",
+    badgeBg: "bg-amber-500/10 text-amber-600",
+    ctaColor: "bg-red-600 hover:bg-red-700 text-white",
+    features: [
+      "Gruppi di supporto riservati ai familiari (illimitati)",
+      "Metodo CRAFT: come motivare chi non vuole aiuto",
+      "Tecniche di comunicazione non conflittuale",
+      "Community riservata famiglie",
+      "Segreto professionale garantito",
+    ],
+    configMonthly: "stripe_v2_gruppi_solo_mensile_url",
+    configAnnual:  "stripe_v2_gruppi_solo_annuale_url",
+  },
+  {
+    key: "famiglie_completo",
+    level: "alto",
+    badge: "Critica",
+    name: "Colloquio + Gruppi",
+    tagline: "Supporto intensivo: un professionista dedicato e i gruppi",
+    priceLabel: "297€",
+    period: "/ mese",
+    annualLabel: "oppure 2.970€/anno (risparmia 594€)",
+    color: "border-red-500/40",
+    badgeBg: "bg-red-500/10 text-red-600",
+    ctaColor: "bg-red-600 hover:bg-red-700 text-white",
+    features: [
+      "Colloqui settimanali 1:1 con uno specialista",
+      "Gruppi di supporto per familiari (illimitati)",
+      "Piano personalizzato per la tua situazione",
+      "Strategie per avvicinare il familiare al cambiamento",
+      "Community riservata famiglie",
+      "Segreto professionale garantito",
+    ],
+    configMonthly: "stripe_v2_gruppi_mensile_url",
+    configAnnual:  "stripe_v2_gruppi_annuale_url",
+  },
+];
+
 export default function PianoV2() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const config = useAppConfig();
   const funnel = (() => { try { return JSON.parse(sessionStorage.getItem("sw_funnel") || "{}"); } catch { return {}; } })();
   const level: "basso" | "medio" | "alto" = funnel.level || "medio";
+  const isFamiglie = id === "famiglie";
+  const plans = isFamiglie ? PLANS_FAMIGLIE : PLANS;
 
   // Annual toggle (only for plans that have it)
   const [annualMode, setAnnualMode] = useState<Record<string, boolean>>({});
@@ -155,7 +227,7 @@ export default function PianoV2() {
         </div>
 
         {/* Cards */}
-        {PLANS.map((plan) => {
+        {plans.map((plan) => {
           const isRecommended = plan.level === level;
           const isAnnual = annualMode[plan.key] ?? false;
 
