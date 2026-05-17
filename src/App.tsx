@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import PercorsiV2 from "./pages/v2/PercorsiV2";
 import RisultatoV2 from "./pages/v2/RisultatoV2";
 import PianoV2 from "./pages/v2/PianoV2";
+import PianoStandalone from "./pages/v2/PianoStandalone";
 import AccessoV2 from "./pages/v2/AccessoV2";
 import PercorsoSuggerito from "./pages/PercorsoSuggerito";
 
@@ -82,6 +83,7 @@ const App = () => (
 
             {/* ── FUNNEL V2 — pubblico, analytics separata ── */}
             <Route path="/v2" element={<PercorsiV2 />} />
+            <Route path="/v2/piano" element={<PianoStandalone />} />
             <Route path="/v2/:id/questionario" element={<PercorsoQuestionario />} />
             <Route path="/v2/:id/risultato" element={<RisultatoV2 />} />
             <Route path="/v2/:id/piano" element={<PianoV2 />} />
