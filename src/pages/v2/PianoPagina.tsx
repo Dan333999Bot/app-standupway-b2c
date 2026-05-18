@@ -61,7 +61,7 @@ const REGISTRY: Record<string, PlanConfig> = {
     annualLabel: "oppure 2.970€/anno (risparmia 594€)",
     features: [
       "Gruppi terapeutici online (illimitati)",
-      "1 colloquio individuale al mese",
+      "1 colloquio individuale a settimana",
       "Accesso all'app StandUpWay",
       "Community 20.000+ persone",
       "Educatori e coach pari certificati",

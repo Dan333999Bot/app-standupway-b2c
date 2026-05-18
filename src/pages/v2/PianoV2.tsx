@@ -46,7 +46,7 @@ const PLANS = [
     ctaColor: "bg-red-600 hover:bg-red-700 text-white",
     features: [
       "Gruppi terapeutici online (illimitati)",
-      "1 colloquio individuale al mese",
+      "1 colloquio individuale a settimana",
       "Accesso all'app StandUpWay",
       "Community 20.000+ persone",
       "Educatori e coach pari certificati",
